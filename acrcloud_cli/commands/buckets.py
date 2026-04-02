@@ -109,7 +109,7 @@ def get_bucket(ctx, bucket_id, output):
 
 @buckets.command(name='create')
 @click.option('--name', '-n', required=True, help='Bucket name')
-@click.option('--type', '-t', 'bucket_type', required=True, 
+@click.option('--type', '-t', 'bucket_type', default='File', 
               type=click.Choice(['File', 'Live', 'LiveRec', 'LiveTimeshift']),
               help='Bucket type')
 @click.option('--region', '-r', required=True,

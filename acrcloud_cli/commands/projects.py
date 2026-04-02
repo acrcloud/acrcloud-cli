@@ -111,7 +111,7 @@ def get_project(ctx, project_id, output):
 @click.option('--region', '-r', required=True,
               type=click.Choice(['eu-west-1', 'us-west-2', 'ap-southeast-1']),
               help='Region')
-@click.option('--buckets', '-b', required=True, help='Comma-separated bucket IDs')
+@click.option('--buckets', '-b', default='23', help='Comma-separated bucket IDs')
 @click.option('--audio-type', type=click.Choice(['linein', 'recorded']), default='linein',
               help='Audio type (linein=original, recorded=microphone)')
 @click.option('--external-ids', '-e', help='External IDs (spotify,deezer,isrc,upc,musicbrainz)')

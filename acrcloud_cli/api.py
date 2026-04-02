@@ -4,6 +4,7 @@ ACRCloud API Client
 
 import requests
 import json
+import os
 from typing import Optional, Dict, Any, List
 
 
@@ -20,15 +21,17 @@ class ACRCloudAPI:
             'Content-Type': 'application/json'
         })
     
-    def _request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
+    def _request(self, method: str, endpoint: str, base_url: Optional[str] = None, **kwargs) -> Dict[str, Any]:
         """Make HTTP request to API"""
-        url = f"{self.base_url}{endpoint}"
+        url = f"{base_url if base_url else self.base_url}{endpoint}"
+        
+        headers = kwargs.get('headers', {})
         
         # Handle files separately for multipart/form-data
         if 'files' in kwargs:
-            # Remove Content-Type header for multipart requests
-            headers = dict(self.session.headers)
-            headers.pop('Content-Type', None)
+            # Explicitly suppress session's Content-Type for multipart
+            if 'Content-Type' not in headers:
+                headers['Content-Type'] = None
             response = self.session.request(method, url, headers=headers, **kwargs)
         else:
             response = self.session.request(method, url, **kwargs)
@@ -380,64 +383,53 @@ class ACRCloudAPI:
         if state:
             params['state'] = state
         
-        url = f"{base_url}/fs-containers/{container_id}/files"
-        response = self.session.get(url, params=params)
-        response.raise_for_status()
-        return response.json()
+        return self._request('GET', f'/fs-containers/{container_id}/files', 
+                            base_url=self._get_fs_base_url(region), params=params)
     
     def get_fs_file(self, container_id: int, region: str, file_id: str) -> Dict:
         """Get a specific file scanning file"""
-        base_url = self._get_fs_base_url(region)
-        url = f"{base_url}/fs-containers/{container_id}/files/{file_id}"
-        response = self.session.get(url)
-        response.raise_for_status()
-        return response.json()
+        return self._request('GET', f'/fs-containers/{container_id}/files/{file_id}',
+                            base_url=self._get_fs_base_url(region))
     
     def upload_fs_file(self, container_id: int, region: str,
                        file_path: Optional[str] = None,
                        audio_url: Optional[str] = None,
-                       data_type: str = 'audio') -> Dict:
+                       data_type: str = 'audio',
+                       name: Optional[str] = None) -> Dict:
         """Upload a file to file scanning container"""
         base_url = self._get_fs_base_url(region)
-        url = f"{base_url}/fs-containers/{container_id}/files"
-        
         data = {'data_type': data_type}
+        if name:
+            data['name'] = name
+            
         files = None
-        
         if data_type == 'audio' and file_path:
-            files = {'file': open(file_path, 'rb')}
+            # Use tuple to specify filename to ensure it is sent correctly
+            filename = name or os.path.basename(file_path)
+            files = {'file': (filename, open(file_path, 'rb'))}
         elif data_type == 'audio_url' and audio_url:
             data['url'] = audio_url
-        
+            
         try:
             if files:
-                headers = dict(self.session.headers)
-                headers.pop('Content-Type', None)
-                response = self.session.post(url, data=data, files=files, headers=headers)
+                return self._request('POST', f'/fs-containers/{container_id}/files',
+                                    base_url=base_url, data=data, files=files)
             else:
-                response = self.session.post(url, json=data)
-            response.raise_for_status()
-            return response.json()
+                return self._request('POST', f'/fs-containers/{container_id}/files',
+                                    base_url=base_url, json=data)
         finally:
             if files:
-                for f in files.values():
-                    f.close()
+                files['file'][1].close()
     
     def delete_fs_files(self, container_id: int, region: str, file_ids: str) -> Dict:
         """Delete files from file scanning container"""
-        base_url = self._get_fs_base_url(region)
-        url = f"{base_url}/fs-containers/{container_id}/files/{file_ids}"
-        response = self.session.delete(url)
-        response.raise_for_status()
-        return {}
+        return self._request('DELETE', f'/fs-containers/{container_id}/files/{file_ids}',
+                            base_url=self._get_fs_base_url(region))
     
     def rescan_fs_files(self, container_id: int, region: str, file_ids: str) -> Dict:
         """Rescan files in file scanning container"""
-        base_url = self._get_fs_base_url(region)
-        url = f"{base_url}/fs-containers/{container_id}/files/{file_ids}/rescan"
-        response = self.session.put(url)
-        response.raise_for_status()
-        return response.json()
+        return self._request('PUT', f'/fs-containers/{container_id}/files/{file_ids}/rescan',
+                            base_url=self._get_fs_base_url(region))
     
     # ==================== BM Custom Streams Projects ====================
     
