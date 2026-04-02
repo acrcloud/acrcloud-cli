@@ -498,6 +498,20 @@ class ACRCloudAPI:
         data = {'result_callback_url': callback_url}
         return self._request('POST', f'/bm-cs-projects/{project_id}/result-callback', json=data)
     
+    def set_bm_cs_state_notification_callback(self, project_id: int, 
+                                              email: Optional[str] = None,
+                                              frequency: Optional[int] = None,
+                                              url: Optional[str] = None) -> Dict:
+        """Set state notification callback for BM custom streams project"""
+        data = {}
+        if email:
+            data['state_notification_email'] = email
+        if frequency is not None:
+            data['state_notification_email_frequency'] = frequency  # 0:High, 1:Low, 2:None
+        if url:
+            data['state_notification_url'] = url
+        return self._request('POST', f'/bm-cs-projects/{project_id}/state-notification', json=data)
+    
     # ==================== BM Custom Streams ====================
     
     def list_bm_streams(self, project_id: int, page: int = 1, per_page: int = 50,
@@ -557,6 +571,315 @@ class ACRCloudAPI:
     def restart_bm_streams(self, project_id: int, stream_ids: str) -> Dict:
         """Restart streams in BM custom streams project"""
         return self._request('PUT', f'/bm-cs-projects/{project_id}/streams/{stream_ids}/restart')
+
+    # ==================== BM Custom Streams Data ====================
+    
+    def get_bm_stream_state(self, project_id: int, stream_id: str,
+                            timeoffset: Optional[int] = None,
+                            start_date: Optional[str] = None,
+                            end_date: Optional[str] = None) -> Dict:
+        """Get the state of the stream"""
+        params = {}
+        if timeoffset is not None:
+            params['timeoffset'] = timeoffset
+        if start_date:
+            params['start_date'] = start_date
+        if end_date:
+            params['end_date'] = end_date
+        return self._request('GET', f'/bm-cs-projects/{project_id}/streams/{stream_id}/state', params=params)
+    
+    def get_bm_stream_results(self, project_id: int, stream_id: str,
+                              result_type: str = 'day',
+                              date: Optional[str] = None,
+                              min_duration: Optional[int] = None,
+                              max_duration: Optional[int] = None,
+                              isrc_country: Optional[str] = None,
+                              with_false_positive: Optional[int] = None) -> Dict:
+        """Get the stream monitoring results"""
+        params = {'type': result_type}
+        if date:
+            params['date'] = date
+        if min_duration is not None:
+            params['min_duration'] = min_duration
+        if max_duration is not None:
+            params['max_duration'] = max_duration
+        if isrc_country:
+            params['isrc_country'] = isrc_country
+        if with_false_positive is not None:
+            params['with_false_positive'] = with_false_positive
+        return self._request('GET', f'/bm-cs-projects/{project_id}/streams/{stream_id}/results', params=params)
+    
+    def get_bm_analytics(self, project_id: int, stats_type: str, result_type: str) -> Dict:
+        """Get analytics data for the last 7 days"""
+        params = {
+            'stats_type': stats_type,
+            'result_type': result_type
+        }
+        return self._request('GET', f'/bm-cs-projects/{project_id}/analytics/results', params=params)
+    
+    def add_bm_stream_user_report(self, project_id: int, stream_id: str, data: List[Dict]) -> Dict:
+        """Insert user results"""
+        payload = {'data': data}
+        return self._request('POST', f'/bm-cs-projects/{project_id}/streams/{stream_id}/user-reports', json=payload)
+    
+    def get_bm_stream_recording(self, project_id: int, stream_id: str,
+                                timestamp_utc: str, played_duration: int,
+                                record_before: int = 0, record_after: int = 0) -> Dict:
+        """Get the recording of the results"""
+        params = {
+            'timestamp_utc': timestamp_utc,
+            'played_duration': played_duration,
+            'record_before': record_before,
+            'record_after': record_after
+        }
+        return self._request('GET', f'/bm-cs-projects/{project_id}/streams/{stream_id}/recordings', params=params)
+
+    # ==================== BM Database Projects ====================
+    
+    def list_bm_db_projects(self, region: Optional[str] = None) -> Dict:
+        """List all BM Database projects"""
+        params = {}
+        if region:
+            params['region'] = region
+        return self._request('GET', '/bm-bd-projects', params=params)
+
+    def create_bm_db_project(self, name: str, region: str, buckets: List[int]) -> Dict:
+        """Create a new BM Database project"""
+        payload = {
+            'name': name,
+            'region': region,
+            'buckets': buckets
+        }
+        return self._request('POST', '/bm-bd-projects', json=payload)
+
+    def update_bm_db_project(self, project_id: int, name: Optional[str] = None, buckets: Optional[List[int]] = None) -> Dict:
+        """Update a BM Database project"""
+        payload = {}
+        if name:
+            payload['name'] = name
+        if buckets:
+            payload['buckets'] = buckets
+        return self._request('PUT', f'/bm-bd-projects/{project_id}', json=payload)
+
+    def delete_bm_db_project(self, project_id: int) -> Dict:
+        """Delete a BM Database project"""
+        return self._request('DELETE', f'/bm-bd-projects/{project_id}')
+
+    def set_bm_db_result_callback(self, project_id: int, result_callback_url: str,
+                                  result_callback_send_noresult: int = 0,
+                                  result_callback_result_type: int = 0) -> Dict:
+        """Set result callback URL for BM Database project"""
+        payload = {
+            'result_callback_url': result_callback_url,
+            'result_callback_send_noresult': result_callback_send_noresult,
+            'result_callback_result_type': result_callback_result_type
+        }
+        return self._request('POST', f'/bm-bd-projects/{project_id}/result-callback', json=payload)
+
+    def set_bm_db_state_notification_callback(self, project_id: int, state_callback_url: str) -> Dict:
+        """Set state notification callback for BM Database project"""
+        payload = {
+            'state_callback_url': state_callback_url
+        }
+        return self._request('POST', f'/bm-bd-projects/{project_id}/state-notification', json=payload)
+
+    # ==================== BM Database Channels ====================
+    
+    def list_bm_db_channels(self, project_id: int, state: str = 'All', timemap: Optional[str] = None,
+                            search_type: Optional[str] = None, search_value: Optional[str] = None,
+                            page: int = 1) -> Dict:
+        """List channels in BM Database project"""
+        params = {'state': state, 'page': page}
+        if timemap:
+            params['timemap'] = timemap
+        if search_type and search_value:
+            params['search_type'] = search_type
+            params['search_value'] = search_value
+        return self._request('GET', f'/bm-bd-projects/{project_id}/channels', params=params)
+
+    def add_bm_db_channels(self, project_id: int, channels: List[int]) -> Dict:
+        """Add channels to BM Database project"""
+        payload = {'channels': channels}
+        return self._request('POST', f'/bm-bd-projects/{project_id}/channels', json=payload)
+
+    def delete_bm_db_channels(self, project_id: int, channel_ids: str) -> Dict:
+        """Delete channels from BM Database project"""
+        return self._request('DELETE', f'/bm-bd-projects/{project_id}/channels/{channel_ids}')
+
+    def set_bm_db_channel_custom_id(self, project_id: int, channel_id: int, custom_id: str) -> Dict:
+        """Set custom_id for a channel"""
+        params = {'custom_id': custom_id}
+        return self._request('POST', f'/bm-bd-projects/{project_id}/channels/{channel_id}/user-defined', params=params)
+
+    # ==================== BM Database Channels Data ====================
+    
+    def get_bm_db_channel_results(self, project_id: int, channel_id: int, result_type: str = 'day',
+                                  date: Optional[str] = None, min_duration: Optional[int] = None,
+                                  max_duration: Optional[int] = None, isrc_country: Optional[str] = None,
+                                  with_false_positive: Optional[int] = None) -> Dict:
+        """Get non-real-time results of channel monitoring"""
+        params = {'type': result_type}
+        if date:
+            params['date'] = date
+        if min_duration is not None:
+            params['min_duration'] = min_duration
+        if max_duration is not None:
+            params['max_duration'] = max_duration
+        if isrc_country:
+            params['isrc_country'] = isrc_country
+        if with_false_positive is not None:
+            params['with_false_positive'] = with_false_positive
+        return self._request('GET', f'/bm-bd-projects/{project_id}/channels/{channel_id}/results', params=params)
+
+    def get_bm_db_channel_realtime_results(self, project_id: int, channel_id: int) -> Dict:
+        """Get real-time results of channel monitoring"""
+        return self._request('GET', f'/bm-bd-projects/{project_id}/channels/{channel_id}/realtime_results')
+
+    def get_bm_db_channel_state(self, project_id: int, channel_id: int,
+                                timeoffset: Optional[int] = None,
+                                start_date: Optional[str] = None,
+                                end_date: Optional[str] = None) -> Dict:
+        """Get the state of the channel"""
+        params = {}
+        if timeoffset is not None:
+            params['timeoffset'] = timeoffset
+        if start_date:
+            params['start_date'] = start_date
+        if end_date:
+            params['end_date'] = end_date
+        return self._request('GET', f'/bm-bd-projects/{project_id}/channels/{channel_id}/state', params=params)
+
+    def get_bm_db_analytics(self, project_id: int, stats_type: str, result_type: str) -> Dict:
+        """Get analytics data for the last 7 days"""
+        params = {
+            'stats_type': stats_type,
+            'result_type': result_type
+        }
+        return self._request('GET', f'/bm-bd-projects/{project_id}/analytics/results', params=params)
+
+    def add_bm_db_channel_user_report(self, project_id: int, channel_id: int, data: List[Dict]) -> Dict:
+        """Insert user results"""
+        payload = {'data': data}
+        return self._request('POST', f'/bm-bd-projects/{project_id}/channels/{channel_id}/user-reports', json=payload)
+
+    def get_bm_db_channel_recording(self, project_id: int, channel_id: int,
+                                    timestamp_utc: str, played_duration: int,
+                                    record_before: int = 0, record_after: int = 0) -> Dict:
+        """Get the recording of the results"""
+        params = {
+            'timestamp_utc': timestamp_utc,
+            'played_duration': played_duration,
+            'record_before': record_before,
+            'record_after': record_after
+        }
+        return self._request('GET', f'/bm-bd-projects/{project_id}/channels/{channel_id}/recordings', params=params)
+
+    # ==================== UCF Projects ====================
+
+    def list_ucf_projects(self, region: Optional[str] = None) -> Dict:
+        """List all UCF projects"""
+        params = {}
+        if region:
+            params['region'] = region
+        return self._request('GET', '/ucf-projects', params=params)
+
+    def create_ucf_project(self, name: str, region: str, project_type: str = 'BM',
+                           config: Optional[Dict] = None) -> Dict:
+        """Create a new UCF project"""
+        payload = {
+            'name': name,
+            'region': region,
+            'type': project_type
+        }
+        if config:
+            payload['config'] = config
+        return self._request('POST', '/ucf-projects', json=payload)
+
+    def update_ucf_project(self, project_id: int, name: Optional[str] = None,
+                           config: Optional[Dict] = None) -> Dict:
+        """Update a UCF project"""
+        payload = {}
+        if name:
+            payload['name'] = name
+        if config:
+            payload['config'] = config
+        return self._request('PUT', f'/ucf-projects/{project_id}', json=payload)
+
+    def delete_ucf_project(self, project_id: int) -> Dict:
+        """Delete a UCF project"""
+        return self._request('DELETE', f'/ucf-projects/{project_id}')
+
+    # ==================== UCF BM Streams ====================
+
+    def list_ucf_streams(self, project_id: int, page: int = 1, per_page: int = 10) -> Dict:
+        """List UCF BM streams"""
+        params = {'page': page, 'per_page': per_page}
+        return self._request('GET', f'/ucf-projects/{project_id}/streams', params=params)
+
+    def import_ucf_bm_streams(self, project_id: int, bm_stream_ids: List[str],
+                              origin_from: str, bm_project_id: int) -> Dict:
+        """Import BM streams to UCF project"""
+        payload = {
+            'bm_stream_ids': bm_stream_ids,
+            'from': origin_from,
+            'bm_project_id': bm_project_id
+        }
+        return self._request('POST', f'/ucf-projects/{project_id}/streams', json=payload)
+
+    def delete_ucf_bm_streams(self, project_id: int, stream_ids: str) -> Dict:
+        """Delete UCF BM streams"""
+        return self._request('DELETE', f'/ucf-projects/{project_id}/streams/{stream_ids}')
+
+    # ==================== UCF Results ====================
+
+    def list_ucf_results(self, project_id: int, page: int = 1, per_page: int = 10,
+                         begin_date: Optional[str] = None, end_date: Optional[str] = None,
+                         sortby: Optional[str] = None, order: Optional[str] = None,
+                         status: Optional[str] = None, min_duration: Optional[str] = None,
+                         max_duration: Optional[str] = None, streams: Optional[str] = None,
+                         ucf_id: Optional[str] = None, label: Optional[str] = None,
+                         label_value: Optional[str] = None) -> Dict:
+        """List UCF results"""
+        params = {'page': page, 'per_page': per_page}
+        if begin_date: params['begin_date'] = begin_date
+        if end_date: params['end_date'] = end_date
+        if sortby: params['sortby'] = sortby
+        if order: params['order'] = order
+        if status: params['status'] = status
+        if min_duration: params['min'] = min_duration
+        if max_duration: params['max'] = max_duration
+        if streams: params['streams'] = streams
+        if ucf_id: params['ucf_id'] = ucf_id
+        if label: params['label'] = label
+        if label_value: params['label_value'] = label_value
+        return self._request('GET', f'/ucf-projects/{project_id}/results', params=params)
+
+    def get_ucf_result(self, project_id: int, ucf_id: str) -> Dict:
+        """Get one UCF item"""
+        return self._request('GET', f'/ucf-projects/{project_id}/results/{ucf_id}')
+
+    def get_ucf_result_details(self, project_id: int, ucf_id: int, page: int = 1,
+                               per_page: int = 10, begin_date: Optional[str] = None,
+                               end_date: Optional[str] = None) -> Dict:
+        """Get UCF item details"""
+        params = {'page': page, 'per_page': per_page}
+        if begin_date: params['begin_date'] = begin_date
+        if end_date: params['end_date'] = end_date
+        return self._request('GET', f'/ucf-projects/{project_id}/results/{ucf_id}/details', params=params)
+
+    def get_ucf_record_url(self, project_id: int, ucf_id: str, extend: int = 20) -> Dict:
+        """Get UCF record URL"""
+        params = {'extend': extend}
+        return self._request('GET', f'/ucf-projects/{project_id}/results/{ucf_id}/record', params=params)
+
+    def delete_ucf_item(self, project_id: int, ucf_id: int, reserved: int = 0) -> Dict:
+        """Delete or reserve a UCF item"""
+        params = {'reserved': reserved}
+        return self._request('DELETE', f'/ucf-projects/{project_id}/results/{ucf_id}', params=params)
+
+    def set_ucf_item_pending(self, project_id: int, ucf_id: int) -> Dict:
+        """Make a UCF item status pending"""
+        return self._request('POST', f'/ucf-projects/{project_id}/results/{ucf_id}/pending')
 
 
 class APIError(Exception):

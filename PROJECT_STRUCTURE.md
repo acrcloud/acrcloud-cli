@@ -17,7 +17,9 @@ acrcloud-cli/
 │       ├── files.py           # File management commands
 │       ├── projects.py        # Project management commands
 │       ├── filescan.py        # File Scanning commands
-│       └── bmprojects.py      # BM Projects commands
+│       ├── bm_cs_projects.py      # BM Projects commands (Custom Streams)
+│       ├── bm_db_projects.py      # BM Projects commands (Database)
+│       └── ucf_projects.py        # User Custom Content (UCF) Projects commands
 ├── tests/                     # Test suite
 │   ├── __init__.py
 │   └── test_config.py         # Configuration tests

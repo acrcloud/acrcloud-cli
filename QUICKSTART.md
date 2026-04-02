@@ -63,32 +63,32 @@ acrcloud buckets delete 12345
 
 ```bash
 # List files in a bucket
-acrcloud files list --bucket-id 12345
+acrcloud buckets files list --bucket-id 12345
 
 # Upload an audio file
-acrcloud files upload --bucket-id 12345 --file audio.mp3 --title "My Song"
+acrcloud buckets files upload --bucket-id 12345 --file audio.mp3 --title "My Song"
 
 # Upload a fingerprint
-acrcloud files upload --bucket-id 12345 --file fingerprint.fp --type fingerprint
+acrcloud buckets files upload --bucket-id 12345 --file fingerprint.fp --type fingerprint
 
 # Upload via URL
-acrcloud files upload --bucket-id 12345 --url https://example.com/audio.mp3 --type audio_url
+acrcloud buckets files upload --bucket-id 12345 --url https://example.com/audio.mp3 --type audio_url
 
 # Delete a file
-acrcloud files delete 67890 --bucket-id 12345
+acrcloud buckets files delete 67890 --bucket-id 12345
 ```
 
 ### Channels
 
 ```bash
 # List channels
-acrcloud channels list --bucket-id 12345
+acrcloud buckets channels list --bucket-id 12345
 
 # Create a channel
-acrcloud channels create --bucket-id 12345 --name "Radio" --url "http://stream.example.com"
+acrcloud buckets channels create --bucket-id 12345 --name "Radio" --url "http://stream.example.com"
 
 # Delete a channel
-acrcloud channels delete 67890 --bucket-id 12345
+acrcloud buckets channels delete 67890 --bucket-id 12345
 ```
 
 ### Projects
@@ -128,17 +128,47 @@ acrcloud filescan list-files --container-id 12345 --region eu-west-1
 
 ```bash
 # List BM projects
-acrcloud bmprojects list
+acrcloud bm-cs-projects list
 
 # Create a BM project
-acrcloud bmprojects create --name my-bm --region eu-west-1 --buckets "12345"
+acrcloud bm-cs-projects create --name my-bm --region eu-west-1 --buckets "12345"
 
 # Add a stream
-acrcloud bmprojects add-stream 12345 --name "Radio" \
+acrcloud bm-cs-projects add-stream 12345 --name "Radio" \
     --url "http://stream.example.com" --config-id 1
 
 # List streams
-acrcloud bmprojects list-streams 12345
+acrcloud bm-cs-projects list-streams 12345
+```
+
+### BM Database Projects
+
+Manage local broadcast database monitoring configurations and query channel metadata via CLI.
+
+```bash
+# List DB projects
+acrcloud bm-db-projects list
+
+# List channels in project
+acrcloud bm-db-projects list-channels 12345
+
+# Get non-realtime results for a channel
+acrcloud bm-db-projects channel-results 12345 100251
+```
+
+### UCF Projects
+
+Manage User Custom Content (UCF) projects and their detection results.
+
+```bash
+# List UCF projects
+acrcloud ucf-projects list
+
+# List UCF results for a project
+acrcloud ucf-projects list-results 12345
+
+# Get record audio URL for a specific result
+acrcloud ucf-projects record-url 12345 340335
 ```
 
 ## Output Formats

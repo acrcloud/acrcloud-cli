@@ -39,46 +39,46 @@ acrcloud buckets create \
 # =============================================================================
 
 # List files in a bucket (replace 12345 with actual bucket ID)
-# acrcloud files list --bucket-id 12345
+# acrcloud buckets files list --bucket-id 12345
 
 # Upload an audio file
-# acrcloud files upload \
+# acrcloud buckets files upload \
 #     --bucket-id 12345 \
 #     --file /path/to/audio.mp3 \
 #     --title "My Song"
 
 # Upload a fingerprint file
-# acrcloud files upload \
+# acrcloud buckets files upload \
 #     --bucket-id 12345 \
 #     --file /path/to/fingerprint.fp \
 #     --type fingerprint \
 #     --title "My Fingerprint"
 
 # Upload via URL
-# acrcloud files upload \
+# acrcloud buckets files upload \
 #     --bucket-id 12345 \
 #     --url https://example.com/audio.mp3 \
 #     --type audio_url \
 #     --title "Remote Audio"
 
 # Get file details
-# acrcloud files get 67890 --bucket-id 12345
+# acrcloud buckets files get 67890 --bucket-id 12345
 
 # Update file
-# acrcloud files update 67890 --bucket-id 12345 --title "New Title"
+# acrcloud buckets files update 67890 --bucket-id 12345 --title "New Title"
 
 # Delete file
-# acrcloud files delete 67890 --bucket-id 12345 --yes
+# acrcloud buckets files delete 67890 --bucket-id 12345 --yes
 
 # =============================================================================
 # Channel Management
 # =============================================================================
 
 # List channels in a bucket
-# acrcloud channels list --bucket-id 12345
+# acrcloud buckets channels list --bucket-id 12345
 
 # Create a live channel
-# acrcloud channels create \
+# acrcloud buckets channels create \
 #     --bucket-id 12345 \
 #     --name "Radio One" \
 #     --url "http://stream.example.com/radio" \
@@ -86,13 +86,13 @@ acrcloud buckets create \
 #     --timeshift 72
 
 # Get channel details
-# acrcloud channels get 67890 --bucket-id 12345
+# acrcloud buckets channels get 67890 --bucket-id 12345
 
 # Update channel
-# acrcloud channels update 67890 --bucket-id 12345 --name "New Channel Name"
+# acrcloud buckets channels update 67890 --bucket-id 12345 --name "New Channel Name"
 
 # Delete channel
-# acrcloud channels delete 67890 --bucket-id 12345 --yes
+# acrcloud buckets channels delete 67890 --bucket-id 12345 --yes
 
 # =============================================================================
 # Project Management
@@ -131,4 +131,4 @@ acrcloud projects create \
 
 # Table output (default)
 # acrcloud buckets list --output table
-# acrcloud files list --bucket-id 12345 -o table
+# acrcloud buckets files list --bucket-id 12345 -o table

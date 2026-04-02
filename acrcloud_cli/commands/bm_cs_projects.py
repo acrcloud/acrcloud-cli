@@ -8,9 +8,9 @@ from ..api import ACRCloudAPI
 from ..utils import output_json, output_table, confirm_action
 
 
-@click.group(name='bmprojects')
+@click.group(name='bm-cs-projects')
 @click.pass_context
-def bmprojects(ctx):
+def bm_cs_projects(ctx):
     """Manage ACRCloud BM (Broadcast Monitoring) Custom Streams Projects"""
     ctx.obj['api'] = ACRCloudAPI(
         ctx.obj['access_token'],
@@ -20,7 +20,7 @@ def bmprojects(ctx):
 
 # ==================== BM Custom Streams Projects ====================
 
-@bmprojects.command(name='list')
+@bm_cs_projects.command(name='list')
 @click.option('--page', '-p', default=1, help='Page number')
 @click.option('--per-page', '-n', default=20, help='Results per page')
 @click.option('--region', '-r', help='Filter by region (eu-west-1, us-west-2, ap-southeast-1)')
@@ -31,8 +31,8 @@ def list_projects(ctx, page, per_page, region, project_type, output):
     """List all BM custom streams projects
     
     Examples:
-        acrcloud bmprojects list
-        acrcloud bmprojects list --region eu-west-1
+        acrcloud bm-cs-projects list
+        acrcloud bm-cs-projects list --region eu-west-1
     """
     api = ctx.obj['api']
     
@@ -65,7 +65,7 @@ def list_projects(ctx, page, per_page, region, project_type, output):
         raise click.Abort()
 
 
-@bmprojects.command(name='get')
+@bm_cs_projects.command(name='get')
 @click.argument('project_id', type=int)
 @click.option('--output', '-o', type=click.Choice(['json', 'table']), default='table', help='Output format')
 @click.pass_context
@@ -73,7 +73,7 @@ def get_project(ctx, project_id, output):
     """Get BM custom streams project details
     
     Examples:
-        acrcloud bmprojects get 12345
+        acrcloud bm-cs-projects get 12345
     """
     api = ctx.obj['api']
     
@@ -105,7 +105,7 @@ def get_project(ctx, project_id, output):
         raise click.Abort()
 
 
-@bmprojects.command(name='create')
+@bm_cs_projects.command(name='create')
 @click.option('--name', '-n', required=True, help='Project name')
 @click.option('--region', '-r', required=True,
               type=click.Choice(['eu-west-1', 'us-west-2', 'ap-southeast-1']),
@@ -121,7 +121,7 @@ def create_project(ctx, name, region, buckets, project_type, external_ids, metad
     """Create a new BM custom streams project
     
     Examples:
-        acrcloud bmprojects create --name my-bm-project --region eu-west-1 --buckets "12345,67890"
+        acrcloud bm-cs-projects create --name my-bm-project --region eu-west-1 --buckets "12345,67890"
     """
     api = ctx.obj['api']
     
@@ -153,7 +153,7 @@ def create_project(ctx, name, region, buckets, project_type, external_ids, metad
         raise click.Abort()
 
 
-@bmprojects.command(name='update')
+@bm_cs_projects.command(name='update')
 @click.argument('project_id', type=int)
 @click.option('--name', '-n', help='Project name')
 @click.option('--buckets', '-b', help='Bucket IDs (comma-separated)')
@@ -164,7 +164,7 @@ def update_project(ctx, project_id, name, buckets, external_ids, metadata_templa
     """Update a BM custom streams project
     
     Examples:
-        acrcloud bmprojects update 12345 --name new-name
+        acrcloud bm-cs-projects update 12345 --name new-name
     """
     api = ctx.obj['api']
     
@@ -197,7 +197,7 @@ def update_project(ctx, project_id, name, buckets, external_ids, metadata_templa
         raise click.Abort()
 
 
-@bmprojects.command(name='delete')
+@bm_cs_projects.command(name='delete')
 @click.argument('project_id', type=int)
 @click.option('--yes', '-y', is_flag=True, help='Skip confirmation')
 @click.pass_context
@@ -205,8 +205,8 @@ def delete_project(ctx, project_id, yes):
     """Delete a BM custom streams project
     
     Examples:
-        acrcloud bmprojects delete 12345
-        acrcloud bmprojects delete 12345 --yes
+        acrcloud bm-cs-projects delete 12345
+        acrcloud bm-cs-projects delete 12345 --yes
     """
     api = ctx.obj['api']
     
@@ -224,7 +224,7 @@ def delete_project(ctx, project_id, yes):
         raise click.Abort()
 
 
-@bmprojects.command(name='set-callback')
+@bm_cs_projects.command(name='set-callback')
 @click.argument('project_id', type=int)
 @click.option('--url', '-u', required=True, help='Callback URL')
 @click.pass_context
@@ -232,7 +232,7 @@ def set_callback(ctx, project_id, url):
     """Set result callback URL for BM custom streams project
     
     Examples:
-        acrcloud bmprojects set-callback 12345 --url https://callback.example.com/results
+        acrcloud bm-cs-projects set-callback 12345 --url https://callback.example.com/results
     """
     api = ctx.obj['api']
     
@@ -245,9 +245,44 @@ def set_callback(ctx, project_id, url):
         raise click.Abort()
 
 
+@bm_cs_projects.command(name='set-state-callback')
+@click.argument('project_id', type=int)
+@click.option('--email', '-e', help='State notification email')
+@click.option('--frequency', '-f', type=click.Choice(['0', '1', '2']), help='Email frequency (0:High, 1:Low, 2:None)')
+@click.option('--url', '-u', help='State notification URL')
+@click.pass_context
+def set_state_callback(ctx, project_id, email, frequency, url):
+    """Set state notification callback for BM custom streams project
+    
+    Examples:
+        acrcloud bm-cs-projects set-state-callback 12345 --email notify@example.com --frequency 0
+        acrcloud bm-cs-projects set-state-callback 12345 --url https://callback.example.com/state
+    """
+    api = ctx.obj['api']
+    
+    freq_int = int(frequency) if frequency is not None else None
+    
+    if not email and frequency is None and not url:
+        click.echo("Error: Please provide at least one of --email, --frequency, or --url", err=True)
+        return
+    
+    try:
+        api.set_bm_cs_state_notification_callback(
+            project_id=project_id,
+            email=email,
+            frequency=freq_int,
+            url=url
+        )
+        click.echo(f"✓ State notification callback set successfully!")
+        
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        raise click.Abort()
+
+
 # ==================== BM Streams ====================
 
-@bmprojects.command(name='list-streams')
+@bm_cs_projects.command(name='list-streams')
 @click.argument('project_id', type=int)
 @click.option('--page', '-p', default=1, help='Page number')
 @click.option('--per-page', '-n', default=50, help='Results per page')
@@ -259,8 +294,8 @@ def list_streams(ctx, project_id, page, per_page, state, search, output):
     """List streams in a BM custom streams project
     
     Examples:
-        acrcloud bmprojects list-streams 12345
-        acrcloud bmprojects list-streams 12345 --state Running
+        acrcloud bm-cs-projects list-streams 12345
+        acrcloud bm-cs-projects list-streams 12345 --state Running
     """
     api = ctx.obj['api']
     
@@ -300,7 +335,7 @@ def list_streams(ctx, project_id, page, per_page, state, search, output):
         raise click.Abort()
 
 
-@bmprojects.command(name='add-stream')
+@bm_cs_projects.command(name='add-stream')
 @click.argument('project_id', type=int)
 @click.option('--name', '-n', required=True, help='Stream name')
 @click.option('--url', '-u', required=True, help='Stream URL')
@@ -311,7 +346,7 @@ def add_stream(ctx, project_id, name, url, config_id, user_defined):
     """Add a stream to BM custom streams project
     
     Examples:
-        acrcloud bmprojects add-stream 12345 --name "Radio One" --url "http://stream.example.com" --config-id 1
+        acrcloud bm-cs-projects add-stream 12345 --name "Radio One" --url "http://stream.example.com" --config-id 1
     """
     api = ctx.obj['api']
     
@@ -335,7 +370,7 @@ def add_stream(ctx, project_id, name, url, config_id, user_defined):
         raise click.Abort()
 
 
-@bmprojects.command(name='update-stream')
+@bm_cs_projects.command(name='update-stream')
 @click.argument('project_id', type=int)
 @click.argument('stream_id')
 @click.option('--name', '-n', help='Stream name')
@@ -346,7 +381,7 @@ def update_stream(ctx, project_id, stream_id, name, url, config_id):
     """Update a stream in BM custom streams project
     
     Examples:
-        acrcloud bmprojects update-stream 12345 s-ABC123 --name "New Name"
+        acrcloud bm-cs-projects update-stream 12345 s-ABC123 --name "New Name"
     """
     api = ctx.obj['api']
     
@@ -368,7 +403,7 @@ def update_stream(ctx, project_id, stream_id, name, url, config_id):
         raise click.Abort()
 
 
-@bmprojects.command(name='delete-streams')
+@bm_cs_projects.command(name='delete-streams')
 @click.argument('project_id', type=int)
 @click.option('--stream-ids', '-i', required=True, help='Comma-separated stream IDs')
 @click.option('--yes', '-y', is_flag=True, help='Skip confirmation')
@@ -377,7 +412,7 @@ def delete_streams(ctx, project_id, stream_ids, yes):
     """Delete streams from BM custom streams project
     
     Examples:
-        acrcloud bmprojects delete-streams 12345 --stream-ids "s-ABC123,s-DEF456"
+        acrcloud bm-cs-projects delete-streams 12345 --stream-ids "s-ABC123,s-DEF456"
     """
     api = ctx.obj['api']
     
@@ -395,7 +430,7 @@ def delete_streams(ctx, project_id, stream_ids, yes):
         raise click.Abort()
 
 
-@bmprojects.command(name='pause-streams')
+@bm_cs_projects.command(name='pause-streams')
 @click.argument('project_id', type=int)
 @click.option('--stream-ids', '-i', required=True, help='Comma-separated stream IDs')
 @click.pass_context
@@ -403,7 +438,7 @@ def pause_streams(ctx, project_id, stream_ids):
     """Pause streams in BM custom streams project
     
     Examples:
-        acrcloud bmprojects pause-streams 12345 --stream-ids "s-ABC123,s-DEF456"
+        acrcloud bm-cs-projects pause-streams 12345 --stream-ids "s-ABC123,s-DEF456"
     """
     api = ctx.obj['api']
     
@@ -416,7 +451,7 @@ def pause_streams(ctx, project_id, stream_ids):
         raise click.Abort()
 
 
-@bmprojects.command(name='restart-streams')
+@bm_cs_projects.command(name='restart-streams')
 @click.argument('project_id', type=int)
 @click.option('--stream-ids', '-i', required=True, help='Comma-separated stream IDs')
 @click.pass_context
@@ -424,13 +459,172 @@ def restart_streams(ctx, project_id, stream_ids):
     """Restart streams in BM custom streams project
     
     Examples:
-        acrcloud bmprojects restart-streams 12345 --stream-ids "s-ABC123,s-DEF456"
+        acrcloud bm-cs-projects restart-streams 12345 --stream-ids "s-ABC123,s-DEF456"
     """
     api = ctx.obj['api']
     
     try:
         api.restart_bm_streams(project_id=project_id, stream_ids=stream_ids)
         click.echo(f"✓ Streams restarted successfully!")
+        
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        raise click.Abort()
+
+
+# ==================== BM Custom Streams Data ====================
+
+@bm_cs_projects.command(name='stream-state')
+@click.argument('project_id', type=int)
+@click.argument('stream_id')
+@click.option('--timeoffset', '-t', type=int, help='UTC time offset (e.g., -480 for UTC+8)')
+@click.option('--start-date', '-s', help='Start date (YYYYMMDD)')
+@click.option('--end-date', '-e', help='End date (YYYYMMDD)')
+@click.option('--output', '-o', type=click.Choice(['json']), default='json', help='Output format (only json supported)')
+@click.pass_context
+def stream_state(ctx, project_id, stream_id, timeoffset, start_date, end_date, output):
+    """Get the state of the stream
+    
+    Examples:
+        acrcloud bm-cs-projects stream-state 12345 s-ABC123 --timeoffset -480 --start-date 20210301 --end-date 20210302
+    """
+    api = ctx.obj['api']
+    
+    try:
+        result = api.get_bm_stream_state(
+            project_id=project_id,
+            stream_id=stream_id,
+            timeoffset=timeoffset,
+            start_date=start_date,
+            end_date=end_date
+        )
+        output_json(result)
+        
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        raise click.Abort()
+
+
+@bm_cs_projects.command(name='stream-results')
+@click.argument('project_id', type=int)
+@click.argument('stream_id')
+@click.option('--type', '-t', 'result_type', default='day', type=click.Choice(['last', 'day']), help='Get last or day results')
+@click.option('--date', '-d', help='Date (YYYYMMDD)')
+@click.option('--min-duration', type=int, help='Min duration seconds')
+@click.option('--max-duration', type=int, help='Max duration seconds')
+@click.option('--isrc-country', help='ISRC country code')
+@click.option('--with-false-positive', type=int, help='Return false positives (0 or 1)')
+@click.pass_context
+def stream_results(ctx, project_id, stream_id, result_type, date, min_duration, max_duration, isrc_country, with_false_positive):
+    """Get stream monitoring results
+    
+    Examples:
+        acrcloud bm-cs-projects stream-results 12345 s-ABC123 --date 20210201
+    """
+    api = ctx.obj['api']
+    
+    try:
+        result = api.get_bm_stream_results(
+            project_id=project_id,
+            stream_id=stream_id,
+            result_type=result_type,
+            date=date,
+            min_duration=min_duration,
+            max_duration=max_duration,
+            isrc_country=isrc_country,
+            with_false_positive=with_false_positive
+        )
+        output_json(result)
+        
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        raise click.Abort()
+
+
+@bm_cs_projects.command(name='analytics')
+@click.argument('project_id', type=int)
+@click.option('--stats-type', '-s', required=True, type=click.Choice(['date', 'track', 'artists', 'label', 'stream']), help='Type of data')
+@click.option('--result-type', '-r', required=True, type=click.Choice(['music', 'custom']), help='Type of result')
+@click.pass_context
+def analytics(ctx, project_id, stats_type, result_type):
+    """Get analytics data for the last 7 days
+    
+    Examples:
+        acrcloud bm-cs-projects analytics 12345 --stats-type date --result-type music
+    """
+    api = ctx.obj['api']
+    
+    try:
+        result = api.get_bm_analytics(
+            project_id=project_id,
+            stats_type=stats_type,
+            result_type=result_type
+        )
+        output_json(result)
+        
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        raise click.Abort()
+
+
+@bm_cs_projects.command(name='user-report')
+@click.argument('project_id', type=int)
+@click.argument('stream_id')
+@click.option('--data', '-d', required=True, help='JSON string of user result array')
+@click.pass_context
+def user_report(ctx, project_id, stream_id, data):
+    """Insert user results
+    
+    Examples:
+        acrcloud bm-cs-projects user-report 12345 s-ABC123 --data '[{"from":"api","title":"test","timeoffset":0}]'
+    """
+    api = ctx.obj['api']
+    
+    try:
+        data_list = json.loads(data)
+    except json.JSONDecodeError:
+        click.echo("Error: --data must be a valid JSON array", err=True)
+        return
+    
+    try:
+        result = api.add_bm_stream_user_report(
+            project_id=project_id,
+            stream_id=stream_id,
+            data=data_list
+        )
+        output_json(result)
+        
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        raise click.Abort()
+
+
+@bm_cs_projects.command(name='stream-recording')
+@click.argument('project_id', type=int)
+@click.argument('stream_id')
+@click.option('--timestamp-utc', '-t', required=True, help='Start time (YYYYmmddHHMMSS)')
+@click.option('--played-duration', '-d', required=True, type=int, help='Duration of recording (seconds)')
+@click.option('--record-before', type=int, default=0, help='Seconds of recording to add forward')
+@click.option('--record-after', type=int, default=0, help='Seconds of recording to add backwards')
+@click.pass_context
+def stream_recording(ctx, project_id, stream_id, timestamp_utc, played_duration, record_before, record_after):
+    """Get the recording of the results
+    
+    Examples:
+        acrcloud bm-cs-projects stream-recording 12345 s-ABC123 --timestamp-utc 20210607000210 --played-duration 30
+    """
+    api = ctx.obj['api']
+    
+    try:
+        result = api.get_bm_stream_recording(
+            project_id=project_id,
+            stream_id=stream_id,
+            timestamp_utc=timestamp_utc,
+            played_duration=played_duration,
+            record_before=record_before,
+            record_after=record_after
+        )
+        output_json(result)
         
     except Exception as e:
         click.echo(f"Error: {e}", err=True)

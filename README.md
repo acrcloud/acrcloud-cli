@@ -63,7 +63,7 @@ acrcloud buckets list
 acrcloud buckets create --name my-bucket --type File --region eu-west-1
 
 # Upload an audio file
-acrcloud files upload --bucket-id 12345 --file audio.mp3
+acrcloud buckets files upload --bucket-id 12345 --file audio.mp3
 
 # List projects
 acrcloud projects list
@@ -126,59 +126,59 @@ acrcloud buckets delete 12345 --yes
 
 ```bash
 # List files in a bucket
-acrcloud files list --bucket-id 12345
-acrcloud files list -b 12345 --keyword "song"
+acrcloud buckets files list --bucket-id 12345
+acrcloud buckets files list -b 12345 --keyword "song"
 
 # Get file details
-acrcloud files get 67890 --bucket-id 12345
+acrcloud buckets files get 67890 --bucket-id 12345
 
 # Upload audio file
-acrcloud files upload --bucket-id 12345 --file audio.mp3
-acrcloud files upload -b 12345 -f audio.mp3 --title "My Song"
+acrcloud buckets files upload --bucket-id 12345 --file audio.mp3
+acrcloud buckets files upload -b 12345 -f audio.mp3 --title "My Song"
 
 # Upload fingerprint
-acrcloud files upload -b 12345 -f fingerprint.fp -t fingerprint
+acrcloud buckets files upload -b 12345 -f fingerprint.fp -t fingerprint
 
 # Upload via URL
-acrcloud files upload -b 12345 -u https://example.com/audio.mp3 -t audio_url
+acrcloud buckets files upload -b 12345 -u https://example.com/audio.mp3 -t audio_url
 
 # Upload by ACRID
-acrcloud files upload -b 12345 -a "ACRID123" -t acrid
+acrcloud buckets files upload -b 12345 -a "ACRID123" -t acrid
 
 # Update file
-acrcloud files update 67890 --bucket-id 12345 --title "New Title"
+acrcloud buckets files update 67890 --bucket-id 12345 --title "New Title"
 
 # Delete file
-acrcloud files delete 67890 --bucket-id 12345
+acrcloud buckets files delete 67890 --bucket-id 12345
 
 # Delete multiple files
-acrcloud files delete-batch --bucket-id 12345 --file-ids "1,2,3"
+acrcloud buckets files delete-batch --bucket-id 12345 --file-ids "1,2,3"
 
 # Move files to another bucket
-acrcloud files move --bucket-id 12345 --target-bucket-id 67890 --file-ids "1,2,3"
+acrcloud buckets files move --bucket-id 12345 --target-bucket-id 67890 --file-ids "1,2,3"
 
 # Dump all files (once per day)
-acrcloud files dump --bucket-id 12345
+acrcloud buckets files dump --bucket-id 12345
 ```
 
 ### Channels
 
 ```bash
 # List channels
-acrcloud channels list --bucket-id 12345
+acrcloud buckets channels list --bucket-id 12345
 
 # Get channel details
-acrcloud channels get 67890 --bucket-id 12345
+acrcloud buckets channels get 67890 --bucket-id 12345
 
 # Create channel
-acrcloud channels create --bucket-id 12345 --name "Radio One" --url "http://stream.example.com/radio"
-acrcloud channels create -b 12345 -n "TV Channel" -u "http://tv.example.com/stream" -r 24 -t 72
+acrcloud buckets channels create --bucket-id 12345 --name "Radio One" --url "http://stream.example.com/radio"
+acrcloud buckets channels create -b 12345 -n "TV Channel" -u "http://tv.example.com/stream" -r 24 -t 72
 
 # Update channel
-acrcloud channels update 67890 --bucket-id 12345 --name "New Name"
+acrcloud buckets channels update 67890 --bucket-id 12345 --name "New Name"
 
 # Delete channel
-acrcloud channels delete 67890 --bucket-id 12345
+acrcloud buckets channels delete 67890 --bucket-id 12345
 ```
 
 ### Projects
@@ -261,48 +261,109 @@ acrcloud filescan rescan --container-id 12345 --region eu-west-1 --file-ids "id1
 
 ```bash
 # List BM custom streams projects
-acrcloud bmprojects list
-acrcloud bmprojects list --region eu-west-1
+acrcloud bm-cs-projects list
+acrcloud bm-cs-projects list --region eu-west-1
 
 # Get project details
-acrcloud bmprojects get 12345
+acrcloud bm-cs-projects get 12345
 
 # Create a BM project
-acrcloud bmprojects create --name my-bm-project --region eu-west-1 --buckets "12345,67890"
+acrcloud bm-cs-projects create --name my-bm-project --region eu-west-1 --buckets "12345,67890"
 
 # Update a BM project
-acrcloud bmprojects update 12345 --name new-name
+acrcloud bm-cs-projects update 12345 --name new-name
 
 # Delete a BM project
-acrcloud bmprojects delete 12345
+acrcloud bm-cs-projects delete 12345
 
 # Set result callback URL
-acrcloud bmprojects set-callback 12345 --url https://callback.example.com/results
+acrcloud bm-cs-projects set-callback 12345 --url https://callback.example.com/results
 
 # List streams in a project
-acrcloud bmprojects list-streams 12345
-acrcloud bmprojects list-streams 12345 --state Running
+acrcloud bm-cs-projects list-streams 12345
+acrcloud bm-cs-projects list-streams 12345 --state Running
 
 # Add a stream
-acrcloud bmprojects add-stream 12345 --name "Radio One" \\
+acrcloud bm-cs-projects add-stream 12345 --name "Radio One" \\
     --url "http://stream.example.com" --config-id 1
 
 # Update a stream
-acrcloud bmprojects update-stream 12345 s-ABC123 --name "New Name"
+acrcloud bm-cs-projects update-stream 12345 s-ABC123 --name "New Name"
 
 # Delete streams
-acrcloud bmprojects delete-streams 12345 --stream-ids "s-ABC123,s-DEF456"
+acrcloud bm-cs-projects delete-streams 12345 --stream-ids "s-ABC123,s-DEF456"
 
 # Pause streams
-acrcloud bmprojects pause-streams 12345 --stream-ids "s-ABC123,s-DEF456"
+acrcloud bm-cs-projects pause-streams 12345 --stream-ids "s-ABC123,s-DEF456"
 
 # Restart streams
-acrcloud bmprojects restart-streams 12345 --stream-ids "s-ABC123,s-DEF456"
+acrcloud bm-cs-projects restart-streams 12345 --stream-ids "s-ABC123,s-DEF456"
+
+# Stream state
+acrcloud bm-cs-projects stream-state 12345 s-ABC123
+
+# Stream results
+acrcloud bm-cs-projects stream-results 12345 s-ABC123 --date 20210201
+
+# Analytics
+acrcloud bm-cs-projects analytics 12345 --stats-type date --result-type music
+
+# Stream recording
+acrcloud bm-cs-projects stream-recording 12345 s-ABC123 -t 20210607000210 -d 30
 ```
 
 **Project Types:**
 - `BM-ACRC`: Server-side audio ingestion
 - `BM-LOCAL`: Local monitoring tool audio ingestion
+
+### BM Database Projects
+
+Manage Broadcast Monitoring Database projects, channels, results, user reports, and analytics.
+
+```bash
+# List BM database projects
+acrcloud bm-db-projects list
+acrcloud bm-db-projects list -r eu-west-1
+
+# Create a project
+acrcloud bm-db-projects create --name my-db-project --region eu-west-1 --buckets "14661"
+
+# Add channels
+acrcloud bm-db-projects add-channels 12345 --channels "238766"
+
+# List channels
+acrcloud bm-db-projects list-channels 12345
+
+# Channel results
+acrcloud bm-db-projects channel-results 12345 238766 -d 20210201
+
+# Real-time results
+acrcloud bm-db-projects realtime-results 12345 238766
+```
+
+### UCF Projects
+
+Manage User Custom Content (UCF) projects, importing BM streams, and querying results.
+
+```bash
+# List UCF projects
+acrcloud ucf-projects list
+
+# Create a project
+acrcloud ucf-projects create --name my-ucf-project --region eu-west-1 --type BM
+
+# Import BM streams
+acrcloud ucf-projects import-streams 12345 --bm-stream-ids "191149,198144" --origin-from BM-DATABASE --bm-project-id 871
+
+# List streams
+acrcloud ucf-projects list-streams 12345
+
+# List results
+acrcloud ucf-projects list-results 12345
+
+# Get UCF record URL
+acrcloud ucf-projects record-url 12345 340335
+```
 
 ## Global Options
 

@@ -6,7 +6,7 @@ ACRCloud CLI - Main entry point
 import click
 import os
 import sys
-from .commands import buckets, files, projects, channels, config_cmd, filescan, bmprojects
+from .commands import buckets, projects, config_cmd, filescan, bm_cs_projects, bm_db_projects, ucf_projects
 from .config import Config
 from . import __version__
 
@@ -24,7 +24,7 @@ def cli(ctx, config, access_token, verbose):
     Examples:
         acrcloud buckets list
         acrcloud projects create --name my-project --type AVR
-        acrcloud files upload --bucket-id 12345 --file audio.mp3
+        acrcloud buckets files upload --bucket-id 12345 --file audio.mp3
     
     For more information, visit: https://docs.acrcloud.com/reference/console-api
     """
@@ -48,11 +48,11 @@ def cli(ctx, config, access_token, verbose):
 # Register commands
 cli.add_command(config_cmd.config)
 cli.add_command(buckets.buckets)
-cli.add_command(files.files)
 cli.add_command(projects.projects)
-cli.add_command(channels.channels)
 cli.add_command(filescan.filescan)
-cli.add_command(bmprojects.bmprojects)
+cli.add_command(bm_cs_projects.bm_cs_projects)
+cli.add_command(bm_db_projects.bm_db_projects)
+cli.add_command(ucf_projects.ucf_projects)
 
 
 def main():

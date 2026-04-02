@@ -29,8 +29,8 @@ def list_files(ctx, bucket_id, page, per_page, keyword, output):
     """List files in a bucket
     
     Examples:
-        acrcloud files list --bucket-id 12345
-        acrcloud files list -b 12345 --keyword "song"
+        acrcloud buckets files list --bucket-id 12345
+        acrcloud buckets files list -b 12345 --keyword "song"
     """
     api = ctx.obj['api']
     
@@ -72,7 +72,7 @@ def get_file(ctx, file_id, bucket_id, output):
     """Get file details
     
     Examples:
-        acrcloud files get 67890 --bucket-id 12345
+        acrcloud buckets files get 67890 --bucket-id 12345
     """
     api = ctx.obj['api']
     
@@ -117,10 +117,10 @@ def upload_file(ctx, bucket_id, file_path, audio_url, acrid, data_type, title, u
     """Upload an audio file or fingerprint to a bucket
     
     Examples:
-        acrcloud files upload --bucket-id 12345 --file audio.mp3
-        acrcloud files upload -b 12345 -f fingerprint.fp -t fingerprint
-        acrcloud files upload -b 12345 -u https://example.com/audio.mp3 -t audio_url
-        acrcloud files upload -b 12345 -a "ACRID123" -t acrid
+        acrcloud buckets files upload --bucket-id 12345 --file audio.mp3
+        acrcloud buckets files upload -b 12345 -f fingerprint.fp -t fingerprint
+        acrcloud buckets files upload -b 12345 -u https://example.com/audio.mp3 -t audio_url
+        acrcloud buckets files upload -b 12345 -a "ACRID123" -t acrid
     """
     api = ctx.obj['api']
     
@@ -159,7 +159,7 @@ def update_file(ctx, file_id, bucket_id, title, user_defined):
     """Update a file
     
     Examples:
-        acrcloud files update 67890 --bucket-id 12345 --title "New Title"
+        acrcloud buckets files update 67890 --bucket-id 12345 --title "New Title"
     """
     api = ctx.obj['api']
     
@@ -189,8 +189,8 @@ def delete_file(ctx, file_id, bucket_id, yes):
     """Delete a file
     
     Examples:
-        acrcloud files delete 67890 --bucket-id 12345
-        acrcloud files delete 67890 -b 12345 --yes
+        acrcloud buckets files delete 67890 --bucket-id 12345
+        acrcloud buckets files delete 67890 -b 12345 --yes
     """
     api = ctx.obj['api']
     
@@ -217,7 +217,7 @@ def delete_files_batch(ctx, bucket_id, file_ids, yes):
     """Delete multiple files
     
     Examples:
-        acrcloud files delete-batch --bucket-id 12345 --file-ids "1,2,3"
+        acrcloud buckets files delete-batch --bucket-id 12345 --file-ids "1,2,3"
     """
     api = ctx.obj['api']
     
@@ -246,7 +246,7 @@ def move_files(ctx, bucket_id, target_bucket_id, file_ids):
     """Move files to another bucket
     
     Examples:
-        acrcloud files move --bucket-id 12345 --target-bucket-id 67890 --file-ids "1,2,3"
+        acrcloud buckets files move --bucket-id 12345 --target-bucket-id 67890 --file-ids "1,2,3"
     """
     api = ctx.obj['api']
     
@@ -268,7 +268,7 @@ def dump_files(ctx, bucket_id):
     """Dump all files information in a bucket (once per day limit)
     
     Examples:
-        acrcloud files dump --bucket-id 12345
+        acrcloud buckets files dump --bucket-id 12345
     """
     api = ctx.obj['api']
     

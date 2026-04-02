@@ -28,7 +28,7 @@ def list_channels(ctx, bucket_id, page, per_page, output):
     """List live channels in a bucket
     
     Examples:
-        acrcloud channels list --bucket-id 12345
+        acrcloud buckets channels list --bucket-id 12345
     """
     api = ctx.obj['api']
     
@@ -69,7 +69,7 @@ def get_channel(ctx, channel_id, bucket_id, output):
     """Get channel details
     
     Examples:
-        acrcloud channels get 67890 --bucket-id 12345
+        acrcloud buckets channels get 67890 --bucket-id 12345
     """
     api = ctx.obj['api']
     
@@ -111,8 +111,8 @@ def create_channel(ctx, bucket_id, name, url, record, timeshift, user_defined):
     """Create a live channel
     
     Examples:
-        acrcloud channels create --bucket-id 12345 --name "Radio One" --url "http://stream.example.com/radio"
-        acrcloud channels create -b 12345 -n "TV Channel" -u "http://tv.example.com/stream" -r 24 -t 72
+        acrcloud buckets channels create --bucket-id 12345 --name "Radio One" --url "http://stream.example.com/radio"
+        acrcloud buckets channels create -b 12345 -n "TV Channel" -u "http://tv.example.com/stream" -r 24 -t 72
     """
     api = ctx.obj['api']
     
@@ -151,7 +151,7 @@ def update_channel(ctx, channel_id, bucket_id, name, url, record, timeshift):
     """Update a channel
     
     Examples:
-        acrcloud channels update 67890 --bucket-id 12345 --name "New Name"
+        acrcloud buckets channels update 67890 --bucket-id 12345 --name "New Name"
     """
     api = ctx.obj['api']
     
@@ -181,8 +181,8 @@ def delete_channel(ctx, channel_id, bucket_id, yes):
     """Delete a channel
     
     Examples:
-        acrcloud channels delete 67890 --bucket-id 12345
-        acrcloud channels delete 67890 -b 12345 --yes
+        acrcloud buckets channels delete 67890 --bucket-id 12345
+        acrcloud buckets channels delete 67890 -b 12345 --yes
     """
     api = ctx.obj['api']
     
