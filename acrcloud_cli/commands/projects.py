@@ -8,7 +8,7 @@ from ..api import ACRCloudAPI
 from ..utils import output_json, output_table, confirm_action
 
 
-@click.group(name='projects')
+@click.group(name='base-projects')
 @click.pass_context
 def projects(ctx):
     """Manage ACRCloud recognition projects"""
@@ -27,8 +27,8 @@ def list_projects(ctx, page, per_page, output):
     """List all projects
     
     Examples:
-        acrcloud projects list
-        acrcloud projects list --output json
+        acrcloud base-projects list
+        acrcloud base-projects list --output json
     """
     api = ctx.obj['api']
     
@@ -69,8 +69,8 @@ def get_project(ctx, project_id, output):
     """Get project details
     
     Examples:
-        acrcloud projects get 12345
-        acrcloud projects get 12345 --output json
+        acrcloud base-projects get 12345
+        acrcloud base-projects get 12345 --output json
     """
     api = ctx.obj['api']
     
@@ -120,8 +120,8 @@ def create_project(ctx, name, project_type, region, buckets, audio_type, externa
     """Create a new recognition project
     
     Examples:
-        acrcloud projects create --name my-project --type AVR --region eu-west-1 --buckets "1,2,3"
-        acrcloud projects create -n music-detection -t AVR -r ap-southeast-1 -b "12345" --audio-type linein
+        acrcloud base-projects create --name my-project --type AVR --region eu-west-1 --buckets "1,2,3"
+        acrcloud base-projects create -n music-detection -t AVR -r ap-southeast-1 -b "12345" --audio-type linein
     """
     api = ctx.obj['api']
     
@@ -160,8 +160,8 @@ def update_project(ctx, project_id, name, buckets, audio_type):
     """Update a project
     
     Examples:
-        acrcloud projects update 12345 --name new-name
-        acrcloud projects update 12345 -b "1,2,3,4"
+        acrcloud base-projects update 12345 --name new-name
+        acrcloud base-projects update 12345 -b "1,2,3,4"
     """
     api = ctx.obj['api']
     
@@ -190,8 +190,8 @@ def delete_project(ctx, project_id, yes):
     """Delete a project
     
     Examples:
-        acrcloud projects delete 12345
-        acrcloud projects delete 12345 --yes
+        acrcloud base-projects delete 12345
+        acrcloud base-projects delete 12345 --yes
     """
     api = ctx.obj['api']
     
@@ -216,7 +216,7 @@ def bucket_status(ctx, project_id):
     """Get the status of project's buckets
     
     Examples:
-        acrcloud projects bucket-status 12345
+        acrcloud base-projects bucket-status 12345
     """
     api = ctx.obj['api']
     
@@ -238,8 +238,8 @@ def project_statistics(ctx, project_id, start_date, end_date):
     """Get project statistics
     
     Examples:
-        acrcloud projects statistics 12345
-        acrcloud projects statistics 12345 --start-date 2024-01-01 --end-date 2024-12-31
+        acrcloud base-projects statistics 12345
+        acrcloud base-projects statistics 12345 --start-date 2024-01-01 --end-date 2024-12-31
     """
     api = ctx.obj['api']
     

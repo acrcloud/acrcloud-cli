@@ -23,7 +23,7 @@ def cli(ctx, config, access_token, verbose):
     
     Examples:
         acrcloud buckets list
-        acrcloud projects create --name my-project --type AVR
+        acrcloud base-projects create --name my-project --type AVR
         acrcloud buckets files upload --bucket-id 12345 --file audio.mp3
     
     For more information, visit: https://docs.acrcloud.com/reference/console-api

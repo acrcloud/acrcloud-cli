@@ -5,7 +5,76 @@ ACRCloud API Client
 import requests
 import json
 import os
+import mimetypes
+from pathlib import Path
 from typing import Optional, Dict, Any, List
+from datetime import datetime, timedelta
+
+
+class ContainerCache:
+    """Local cache for container info to reduce API calls"""
+    
+    def __init__(self, ttl_minutes: int = 30):
+        self._cache: Dict[int, Dict] = {}
+        self._timestamps: Dict[int, datetime] = {}
+        self._ttl = timedelta(minutes=ttl_minutes)
+        self._cache_file = Path.home() / '.acrcloud' / 'container_cache.json'
+        self._cache_file.parent.mkdir(parents=True, exist_ok=True)
+        self._load_from_disk()
+    
+    def _load_from_disk(self):
+        """Load cache from disk"""
+        if self._cache_file.exists():
+            try:
+                with open(self._cache_file, 'r') as f:
+                    data = json.load(f)
+                    for cid, info in data.get('containers', {}).items():
+                        cid_int = int(cid)
+                        self._cache[cid_int] = info
+                        ts = datetime.fromisoformat(info.get('_cached_at', ''))
+                        self._timestamps[cid_int] = ts
+            except Exception:
+                pass
+    
+    def _save_to_disk(self):
+        """Save cache to disk"""
+        try:
+            data = {
+                'containers': {
+                    str(cid): info for cid, info in self._cache.items()
+                }
+            }
+            with open(self._cache_file, 'w') as f:
+                json.dump(data, f)
+        except Exception:
+            pass
+    
+    def get(self, container_id: int) -> Optional[Dict]:
+        """Get cached container info, returns None if expired or not found"""
+        ts = self._timestamps.get(container_id)
+        if ts and datetime.now() - ts < self._ttl:
+            return self._cache.get(container_id)
+        # Expired, remove
+        self._cache.pop(container_id, None)
+        self._timestamps.pop(container_id, None)
+        return None
+    
+    def set(self, container_id: int, info: Dict):
+        """Cache container info"""
+        info['_cached_at'] = datetime.now().isoformat()
+        self._cache[container_id] = info
+        self._timestamps[container_id] = datetime.now()
+        self._save_to_disk()
+    
+    def invalidate(self, container_id: Optional[int] = None):
+        """Invalidate cache"""
+        if container_id:
+            self._cache.pop(container_id, None)
+            self._timestamps.pop(container_id, None)
+        else:
+            self._cache.clear()
+            self._timestamps.clear()
+        self._save_to_disk()
 
 
 class ACRCloudAPI:
@@ -20,6 +89,7 @@ class ACRCloudAPI:
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         })
+        self._container_cache = ContainerCache()
     
     def _request(self, method: str, endpoint: str, base_url: Optional[str] = None, **kwargs) -> Dict[str, Any]:
         """Make HTTP request to API"""
@@ -301,7 +371,10 @@ class ACRCloudAPI:
     
     def get_fs_container(self, container_id: int) -> Dict:
         """Get a specific file scanning container"""
-        return self._request('GET', f'/fs-containers/{container_id}')
+        result = self._request('GET', f'/fs-containers/{container_id}')
+        # Cache the result
+        self._container_cache.set(container_id, result)
+        return result
     
     def create_fs_container(self, name: str, region: str, audio_type: str,
                             buckets: List, engine: int, policy: Dict,
@@ -369,11 +442,28 @@ class ACRCloudAPI:
         """Get region-specific base URL for file scanning"""
         return f'https://api-{region}.acrcloud.com/api'
     
-    def list_fs_files(self, container_id: int, region: str, page: int = 1,
-                      per_page: int = 20, search: Optional[str] = None,
-                      with_result: Optional[int] = None,
+    def _resolve_fs_region(self, container_id: int) -> str:
+        """Resolve region by fetching container info from cache or main API"""
+        # Try cache first
+        cached = self._container_cache.get(container_id)
+        if cached:
+            region = cached.get('data', {}).get('region')
+            if region:
+                return region
+        
+        # Fetch from API
+        container = self.get_fs_container(container_id)
+        # Cache the result
+        self._container_cache.set(container_id, container)
+        return container.get('data', {}).get('region')
+    
+    def list_fs_files(self, container_id: int, region: Optional[str] = None,
+                      page: int = 1, per_page: int = 20,
+                      search: Optional[str] = None, with_result: Optional[int] = None,
                       state: Optional[str] = None) -> Dict:
         """List files in a file scanning container"""
+        if not region:
+            region = self._resolve_fs_region(container_id)
         base_url = self._get_fs_base_url(region)
         params = {'page': page, 'per_page': per_page}
         if search:
@@ -382,52 +472,111 @@ class ACRCloudAPI:
             params['with_result'] = with_result
         if state:
             params['state'] = state
-        
         return self._request('GET', f'/fs-containers/{container_id}/files', 
-                            base_url=self._get_fs_base_url(region), params=params)
+                            base_url=base_url, params=params)
     
-    def get_fs_file(self, container_id: int, region: str, file_id: str) -> Dict:
+    def get_fs_file(self, container_id: int, file_id: str,
+                    region: Optional[str] = None) -> Dict:
         """Get a specific file scanning file"""
+        if not region:
+            region = self._resolve_fs_region(container_id)
         return self._request('GET', f'/fs-containers/{container_id}/files/{file_id}',
                             base_url=self._get_fs_base_url(region))
     
-    def upload_fs_file(self, container_id: int, region: str,
+    def _get_presigned_upload_url(self, container_id: int, region: str,
+                                  filename: Optional[str] = None,
+                                  content_type: Optional[str] = None) -> Dict:
+        """Get a presigned S3 upload URL for file scanning"""
+        base_url = self._get_fs_base_url(region)
+        params = {}
+        if filename:
+            params['filename'] = filename
+        if content_type:
+            params['content_type'] = content_type
+        return self._request('GET', f'/fs-containers/{container_id}/presigned-upload',
+                            base_url=base_url, params=params)
+
+    def upload_fs_file(self, container_id: int,
                        file_path: Optional[str] = None,
                        audio_url: Optional[str] = None,
                        data_type: str = 'audio',
-                       name: Optional[str] = None) -> Dict:
-        """Upload a file to file scanning container"""
+                       name: Optional[str] = None,
+                       region: Optional[str] = None) -> Dict:
+        """Upload a file to file scanning container
+
+        For audio/fingerprint types with a local file, uses presigned URL flow:
+        1. GET presigned upload URL
+        2. PUT file to S3
+        3. POST file metadata to create the record
+
+        For other types (audio_url, etc.), uses direct JSON POST.
+        """
+        if not region:
+            region = self._resolve_fs_region(container_id)
         base_url = self._get_fs_base_url(region)
+
+        # Use presigned URL flow for audio/fingerprint with local file
+        if data_type in ('audio', 'fingerprint') and file_path:
+            filename = name or os.path.basename(file_path)
+            content_type = mimetypes.guess_type(file_path)[0] or 'audio/mpeg'
+
+            # Step 1: Get presigned upload URL
+            presigned_result = self._get_presigned_upload_url(
+                container_id, region,
+                filename=filename,
+                content_type=content_type
+            )
+            presigned_data = presigned_result.get('data', {})
+            presigned_url = presigned_data['presigned_url']
+            s3_key = presigned_data['key']
+            s3_headers = presigned_data.get('headers', {})
+
+            # Step 2: PUT file to S3
+            with open(file_path, 'rb') as f:
+                upload_resp = requests.request(
+                    presigned_data.get('method', 'PUT'),
+                    presigned_url,
+                    data=f,
+                    headers=s3_headers
+                )
+                upload_resp.raise_for_status()
+
+            # Step 3: POST file record with S3 key
+            data = {
+                'data_type': data_type,
+                'key': s3_key,
+                'filename': filename,
+            }
+            if name:
+                data['name'] = name
+
+            return self._request('POST', f'/fs-containers/{container_id}/files',
+                                base_url=base_url, json=data)
+
+        # Non-file types: direct JSON POST
         data = {'data_type': data_type}
         if name:
             data['name'] = name
-            
-        files = None
-        if data_type == 'audio' and file_path:
-            # Use tuple to specify filename to ensure it is sent correctly
-            filename = name or os.path.basename(file_path)
-            files = {'file': (filename, open(file_path, 'rb'))}
-        elif data_type == 'audio_url' and audio_url:
+
+        if data_type == 'audio_url' and audio_url:
             data['url'] = audio_url
-            
-        try:
-            if files:
-                return self._request('POST', f'/fs-containers/{container_id}/files',
-                                    base_url=base_url, data=data, files=files)
-            else:
-                return self._request('POST', f'/fs-containers/{container_id}/files',
-                                    base_url=base_url, json=data)
-        finally:
-            if files:
-                files['file'][1].close()
+
+        return self._request('POST', f'/fs-containers/{container_id}/files',
+                            base_url=base_url, json=data)
     
-    def delete_fs_files(self, container_id: int, region: str, file_ids: str) -> Dict:
+    def delete_fs_files(self, container_id: int, file_ids: str,
+                        region: Optional[str] = None) -> Dict:
         """Delete files from file scanning container"""
+        if not region:
+            region = self._resolve_fs_region(container_id)
         return self._request('DELETE', f'/fs-containers/{container_id}/files/{file_ids}',
                             base_url=self._get_fs_base_url(region))
     
-    def rescan_fs_files(self, container_id: int, region: str, file_ids: str) -> Dict:
+    def rescan_fs_files(self, container_id: int, file_ids: str,
+                        region: Optional[str] = None) -> Dict:
         """Rescan files in file scanning container"""
+        if not region:
+            region = self._resolve_fs_region(container_id)
         return self._request('PUT', f'/fs-containers/{container_id}/files/{file_ids}/rescan',
                             base_url=self._get_fs_base_url(region))
     
