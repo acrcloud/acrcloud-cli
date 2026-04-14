@@ -791,28 +791,28 @@ def scan_file(ctx, file_path, container_id, region, engine, buckets, policy_type
                 # Step 2: Create new container with default/auto-generated name
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                 container_name = f"scan_container_{timestamp}"
-            
-            # Build policy
-            policy = {'type': policy_type}
-            if policy_type == 'traverse':
-                policy['interval'] = interval
-                policy['rec_length'] = rec_length
-            
-            result = api.create_fs_container(
-                name=container_name,
-                region=region,
-                audio_type=audio_type,
-                buckets=buckets_list,
-                engine=engine_int,
-                policy=policy,
-                deepright=deepright_bool,
-                music_detection=music_detection_bool,
-                ai_detection=ai_detection_bool
-            )
-            
-            container = result.get('data', {})
-            resolved_container_id = container.get('id')
-            click.echo(f"✓ Created new container: ID={resolved_container_id}, Name={container_name}")
+                
+                # Build policy
+                policy = {'type': policy_type}
+                if policy_type == 'traverse':
+                    policy['interval'] = interval
+                    policy['rec_length'] = rec_length
+                
+                result = api.create_fs_container(
+                    name=container_name,
+                    region=region,
+                    audio_type=audio_type,
+                    buckets=buckets_list,
+                    engine=engine_int,
+                    policy=policy,
+                    deepright=deepright_bool,
+                    music_detection=music_detection_bool,
+                    ai_detection=ai_detection_bool
+                )
+                
+                container = result.get('data', {})
+                resolved_container_id = container.get('id')
+                click.echo(f"✓ Created new container: ID={resolved_container_id}, Name={container_name}")
         
         # Step 3: Upload file
         click.echo(f"Uploading file: {file_path}...")

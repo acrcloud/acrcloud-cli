@@ -234,21 +234,32 @@ acrcloud filescan update-container 12345 --name new-name
 # Delete a container
 acrcloud filescan delete-container 12345
 
-# List files in a container
+# List files in a container (region is optional, auto-resolved from container)
+acrcloud filescan list-files --container-id 12345
 acrcloud filescan list-files --container-id 12345 --region eu-west-1
 
-# Upload a file for scanning
-acrcloud filescan upload --container-id 12345 --region eu-west-1 --file audio.mp3
-acrcloud filescan upload -c 12345 -r eu-west-1 -u https://example.com/audio.mp3 -t audio_url
+# Upload a file for scanning (region and type are optional, auto-detected)
+acrcloud filescan upload --container-id 12345 --file audio.mp3
+acrcloud filescan upload -c 12345 -u https://example.com/audio.mp3 -t audio_url
+acrcloud filescan upload -c 12345 -f fingerprint.fp -t fingerprint
 
-# Get file results
+# Get file results (region is optional, auto-resolved from container)
+acrcloud filescan get-file FILE_ID --container-id 12345
 acrcloud filescan get-file FILE_ID --container-id 12345 --region eu-west-1
 
-# Delete files
-acrcloud filescan delete-files --container-id 12345 --region eu-west-1 --file-ids "id1,id2"
+# Delete files (region is optional)
+acrcloud filescan delete-files --container-id 12345 --file-ids "id1,id2"
 
-# Rescan files
-acrcloud filescan rescan --container-id 12345 --region eu-west-1 --file-ids "id1,id2"
+# Rescan files (region is optional)
+acrcloud filescan rescan --container-id 12345 --file-ids "id1,id2"
+
+# Scan a file (auto-detects container, creates one if needed, polls for results)
+acrcloud filescan scan audio.mp3
+acrcloud filescan scan audio.mp3 --container-id 12345
+acrcloud filescan scan audio.mp3 --region eu-west-1 --engine 1 --buckets "23,24"
+acrcloud filescan scan fingerprint.fp --container-id 12345
+acrcloud filescan scan audio.mp3 --poll-interval 5 --timeout 600
+acrcloud filescan scan audio.mp3 --poll-interval 5 --timeout 600
 ```
 
 **Engines:**
@@ -256,6 +267,12 @@ acrcloud filescan rescan --container-id 12345 --region eu-west-1 --file-ids "id1
 - `2`: Cover Songs
 - `3`: Audio Fingerprinting & Cover songs
 - `4`: Speech to Text
+
+**Notes:**
+- `--region` is optional for all file operations. If not provided, the container's region is automatically resolved from the main API.
+- `--type` is optional for upload. The CLI auto-detects the type based on file extension and content (`.fp` files are detected as `fingerprint`, common audio formats as `audio`).
+- Container info is cached locally (~/.acrcloud/container_cache.json) for 30 minutes to reduce API calls.
+- The `scan` command auto-detects data type, searches for matching containers, uploads the file, and polls for results (default poll interval: 5s, timeout: 600s).
 
 ### BM Projects (Broadcast Monitoring)
 
