@@ -11,6 +11,7 @@ acrcloud-cli/
 │   ├── utils.py               # Utility functions
 │   └── commands/              # Command modules
 │       ├── __init__.py
+│       ├── billing.py         # Billing & Pricing commands
 │       ├── buckets.py         # Bucket management commands
 │       ├── channels.py        # Channel management commands
 │       ├── config_cmd.py      # Configuration commands
@@ -20,14 +21,14 @@ acrcloud-cli/
 │       ├── bm_cs_projects.py      # BM Projects commands (Custom Streams)
 │       ├── bm_db_projects.py      # BM Projects commands (Database)
 │       └── ucf_projects.py        # User Custom Content (UCF) Projects commands
+├── docs/                      # Documentation
+│   └── billing_doc.md         # Billing API reference
 ├── tests/                     # Test suite
 │   ├── __init__.py
 │   └── test_config.py         # Configuration tests
 ├── examples/                  # Usage examples
 │   └── basic_usage.sh         # Basic usage examples
-├── setup.py                   # Package setup
-├── requirements.txt           # Dependencies
-├── MANIFEST.in                # Package manifest
+├── pyproject.toml             # Project configuration (PEP 517/518)
 ├── Makefile                   # Build automation
 ├── README.md                  # Documentation
 ├── LICENSE                    # MIT License
@@ -45,6 +46,7 @@ acrcloud-cli/
 
 ### Command Modules
 
+- **billing.py**: Commands for billing, invoices, and pricing queries
 - **buckets.py**: Commands for bucket CRUD operations
 - **files.py**: Commands for file upload, download, and management
 - **channels.py**: Commands for live channel management
@@ -111,3 +113,10 @@ acrcloud-cli/
 - [x] Delete BM streams
 - [x] Pause BM streams
 - [x] Restart BM streams
+
+### Billing & Pricing API
+- [x] Get current bill
+- [x] Get next bill date
+- [x] List invoices
+- [x] Download invoice PDF
+- [x] Get prices
