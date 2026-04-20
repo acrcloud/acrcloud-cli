@@ -1022,6 +1022,65 @@ class ACRCloudAPI:
         """Make a UCF item status pending"""
         return self._request('POST', f'/ucf-projects/{project_id}/results/{ucf_id}/pending')
 
+    # ==================== Billing ====================
+
+    def _download_request(self, endpoint: str) -> bytes:
+        """Make HTTP request and return raw bytes (for file downloads)"""
+        url = f"{self.base_url}{endpoint}"
+        response = self.session.request('GET', url)
+        try:
+            response.raise_for_status()
+            return response.content
+        except requests.exceptions.HTTPError as e:
+            error_msg = f"HTTP Error {response.status_code}"
+            try:
+                error_data = response.json()
+                if 'message' in error_data:
+                    error_msg = f"{error_msg}: {error_data['message']}"
+                elif 'error' in error_data:
+                    error_msg = f"{error_msg}: {error_data['error']}"
+            except Exception:
+                error_msg = f"{error_msg}: {response.text}"
+            raise APIError(error_msg, response.status_code)
+
+    def get_current_bill(self, uid: Optional[int] = None) -> Dict:
+        """Get the current/latest bill for the authenticated user"""
+        params = {}
+        if uid is not None:
+            params['uid'] = uid
+        return self._request('GET', '/billing/current-bill', params=params)
+
+    def get_next_bill_date(self, uid: Optional[int] = None) -> Dict:
+        """Get the next billing date and remaining days"""
+        params = {}
+        if uid is not None:
+            params['uid'] = uid
+        return self._request('GET', '/billing/next-bill-date', params=params)
+
+    def list_invoices(self, uid: Optional[int] = None, per_page: int = 20) -> Dict:
+        """Get paginated list of invoices"""
+        params = {'per_page': per_page}
+        if uid is not None:
+            params['uid'] = uid
+        return self._request('GET', '/billing/invoices', params=params)
+
+    def download_invoice(self, invoice_id: str) -> bytes:
+        """Download a specific invoice as PDF bytes"""
+        return self._download_request(f'/billing/invoices/{invoice_id}/download')
+
+    def get_prices(self, uid: Optional[int] = None,
+                   price_type: Optional[str] = None,
+                   service_types: Optional[str] = None) -> Dict:
+        """Get pricing information for services"""
+        params = {}
+        if uid is not None:
+            params['uid'] = uid
+        if price_type:
+            params['type'] = price_type
+        if service_types:
+            params['service_types'] = service_types
+        return self._request('GET', '/prices', params=params)
+
 
 class APIError(Exception):
     """API Error exception"""
