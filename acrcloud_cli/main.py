@@ -6,7 +6,7 @@ ACRCloud CLI - Main entry point
 import click
 import os
 import sys
-from .commands import buckets, projects, config_cmd, filescan, bm_cs_projects, bm_db_projects, ucf_projects, billing
+from .commands import buckets, projects, config_cmd, filescan, bm_cs_projects, bm_bd_projects, ucf_projects, billing
 from .config import Config
 from . import __version__
 
@@ -51,7 +51,7 @@ cli.add_command(buckets.buckets)
 cli.add_command(projects.projects)
 cli.add_command(filescan.filescan)
 cli.add_command(bm_cs_projects.bm_cs_projects)
-cli.add_command(bm_db_projects.bm_db_projects)
+cli.add_command(bm_bd_projects.bm_bd_projects)
 cli.add_command(ucf_projects.ucf_projects)
 cli.add_command(billing.billing)
 

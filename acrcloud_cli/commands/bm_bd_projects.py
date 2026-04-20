@@ -4,18 +4,18 @@ from ..api import ACRCloudAPI
 from ..utils import output_json, output_table, confirm_action
 
 
-@click.group(name='bm-db-projects')
+@click.group(name='bm-bd-projects')
 @click.pass_context
-def bm_db_projects(ctx):
+def bm_bd_projects(ctx):
     """Manage ACRCloud BM (Broadcast Monitoring) Database Projects"""
     ctx.obj['api'] = ACRCloudAPI(
         ctx.obj['access_token'],
-        host=ctx.obj.get('host', 'https://api-v2.acrcloud.com')
+        ctx.obj['base_url']
     )
 
 # ==================== BM Database Projects ====================
 
-@bm_db_projects.command(name='list')
+@bm_bd_projects.command(name='list')
 @click.option('--region', '-r', help='Filter by region (eu-west-1, us-west-2, ap-southeast-1)')
 @click.option('--output', '-o', type=click.Choice(['json', 'table']), default='table', help='Output format')
 @click.pass_context
@@ -23,13 +23,13 @@ def list_projects(ctx, region, output):
     """List all BM Database projects
     
     Examples:
-        acrcloud bm-db-projects list
-        acrcloud bm-db-projects list --region eu-west-1
+        acrcloud bm-bd-projects list
+        acrcloud bm-bd-projects list --region eu-west-1
     """
     api = ctx.obj['api']
     
     try:
-        response = api.list_bm_db_projects(region=region)
+        response = api.list_bm_bd_projects(region=region)
         projects = response.get('data', [])
         
         if output == 'json':
@@ -61,7 +61,7 @@ def list_projects(ctx, region, output):
         raise click.Abort()
 
 
-@bm_db_projects.command(name='create')
+@bm_bd_projects.command(name='create')
 @click.option('--name', '-n', required=True, help='Project name')
 @click.option('--region', '-r', required=True,
               type=click.Choice(['eu-west-1', 'us-west-2', 'ap-southeast-1']),
@@ -72,13 +72,13 @@ def create_project(ctx, name, region, buckets):
     """Create a new BM Database project
     
     Examples:
-        acrcloud bm-db-projects create --name my-db-project --region eu-west-1 --buckets "14661"
+        acrcloud bm-bd-projects create --name my-db-project --region eu-west-1 --buckets "14661"
     """
     api = ctx.obj['api']
     
     try:
         bucket_ids = [int(b.strip()) for b in buckets.split(',') if b.strip()]
-        result = api.create_bm_db_project(
+        result = api.create_bm_bd_project(
             name=name,
             region=region,
             buckets=bucket_ids
@@ -93,7 +93,7 @@ def create_project(ctx, name, region, buckets):
         raise click.Abort()
 
 
-@bm_db_projects.command(name='update')
+@bm_bd_projects.command(name='update')
 @click.argument('project_id', type=int)
 @click.option('--name', '-n', help='Project name')
 @click.option('--buckets', '-b', help='Bucket IDs (comma-separated)')
@@ -102,7 +102,7 @@ def update_project(ctx, project_id, name, buckets):
     """Update a BM Database project
     
     Examples:
-        acrcloud bm-db-projects update 12345 --name new-name
+        acrcloud bm-bd-projects update 12345 --name new-name
     """
     api = ctx.obj['api']
     
@@ -115,7 +115,7 @@ def update_project(ctx, project_id, name, buckets):
         if buckets:
             bucket_ids = [int(b.strip()) for b in buckets.split(',') if b.strip()]
             
-        result = api.update_bm_db_project(
+        result = api.update_bm_bd_project(
             project_id=project_id,
             name=name,
             buckets=bucket_ids
@@ -130,7 +130,7 @@ def update_project(ctx, project_id, name, buckets):
         raise click.Abort()
 
 
-@bm_db_projects.command(name='delete')
+@bm_bd_projects.command(name='delete')
 @click.argument('project_id', type=int)
 @click.option('--yes', '-y', is_flag=True, help='Skip confirmation')
 @click.pass_context
@@ -138,7 +138,7 @@ def delete_project(ctx, project_id, yes):
     """Delete a BM Database project
     
     Examples:
-        acrcloud bm-db-projects delete 12345
+        acrcloud bm-bd-projects delete 12345
     """
     api = ctx.obj['api']
     
@@ -148,7 +148,7 @@ def delete_project(ctx, project_id, yes):
             return
             
     try:
-        api.delete_bm_db_project(project_id)
+        api.delete_bm_bd_project(project_id)
         click.echo(f"✓ BM Database project {project_id} deleted successfully!")
         
     except Exception as e:
@@ -156,7 +156,7 @@ def delete_project(ctx, project_id, yes):
         raise click.Abort()
 
 
-@bm_db_projects.command(name='set-callback')
+@bm_bd_projects.command(name='set-callback')
 @click.argument('project_id', type=int)
 @click.option('--url', '-u', required=True, help='Callback URL')
 @click.option('--send-noresult', type=int, default=0, help='Inform when no content detected (0 or 1)')
@@ -166,12 +166,12 @@ def set_callback(ctx, project_id, url, send_noresult, result_type):
     """Set result callback URL for BM Database project
     
     Examples:
-        acrcloud bm-db-projects set-callback 12345 --url https://callback.example.com/results
+        acrcloud bm-bd-projects set-callback 12345 --url https://callback.example.com/results
     """
     api = ctx.obj['api']
     
     try:
-        api.set_bm_db_result_callback(
+        api.set_bm_bd_result_callback(
             project_id=project_id,
             result_callback_url=url,
             result_callback_send_noresult=send_noresult,
@@ -184,7 +184,7 @@ def set_callback(ctx, project_id, url, send_noresult, result_type):
         raise click.Abort()
 
 
-@bm_db_projects.command(name='set-state-callback')
+@bm_bd_projects.command(name='set-state-callback')
 @click.argument('project_id', type=int)
 @click.option('--url', '-u', required=True, help='State notification URL')
 @click.pass_context
@@ -192,12 +192,12 @@ def set_state_callback(ctx, project_id, url):
     """Set state notification callback for BM Database project
     
     Examples:
-        acrcloud bm-db-projects set-state-callback 12345 --url https://callback.example.com/state
+        acrcloud bm-bd-projects set-state-callback 12345 --url https://callback.example.com/state
     """
     api = ctx.obj['api']
     
     try:
-        api.set_bm_db_state_notification_callback(
+        api.set_bm_bd_state_notification_callback(
             project_id=project_id,
             state_callback_url=url
         )
@@ -210,7 +210,7 @@ def set_state_callback(ctx, project_id, url):
 
 # ==================== BM Database Channels ====================
 
-@bm_db_projects.command(name='list-channels')
+@bm_bd_projects.command(name='list-channels')
 @click.argument('project_id', type=int)
 @click.option('--page', '-p', default=1, help='Page number')
 @click.option('--state', '-s', default='All', type=click.Choice(['All', 'Running', 'Timeout', 'Paused', 'Invalid URL', 'Mute', 'Other']), help='Filter by state')
@@ -223,8 +223,8 @@ def list_channels(ctx, project_id, page, state, timemap, search_type, search_val
     """List channels in BM Database project
     
     Examples:
-        acrcloud bm-db-projects list-channels 12345
-        acrcloud bm-db-projects list-channels 12345 --state Running
+        acrcloud bm-bd-projects list-channels 12345
+        acrcloud bm-bd-projects list-channels 12345 --state Running
     """
     api = ctx.obj['api']
     
@@ -233,7 +233,7 @@ def list_channels(ctx, project_id, page, state, timemap, search_type, search_val
         return
         
     try:
-        response = api.list_bm_db_channels(
+        response = api.list_bm_bd_channels(
             project_id=project_id,
             state=state,
             timemap=timemap,
@@ -273,7 +273,7 @@ def list_channels(ctx, project_id, page, state, timemap, search_type, search_val
         raise click.Abort()
 
 
-@bm_db_projects.command(name='add-channels')
+@bm_bd_projects.command(name='add-channels')
 @click.argument('project_id', type=int)
 @click.option('--channels', '-c', required=True, help='Comma-separated channel IDs')
 @click.pass_context
@@ -281,13 +281,13 @@ def add_channels(ctx, project_id, channels):
     """Add channels to BM Database project
     
     Examples:
-        acrcloud bm-db-projects add-channels 12345 --channels "238766,238767"
+        acrcloud bm-bd-projects add-channels 12345 --channels "238766,238767"
     """
     api = ctx.obj['api']
     
     try:
         channel_ids = [int(c.strip()) for c in channels.split(',') if c.strip()]
-        result = api.add_bm_db_channels(project_id=project_id, channels=channel_ids)
+        result = api.add_bm_bd_channels(project_id=project_id, channels=channel_ids)
         click.echo(f"✓ Channels added successfully!")
         output_json(result)
         
@@ -298,7 +298,7 @@ def add_channels(ctx, project_id, channels):
         raise click.Abort()
 
 
-@bm_db_projects.command(name='delete-channels')
+@bm_bd_projects.command(name='delete-channels')
 @click.argument('project_id', type=int)
 @click.option('--channel-ids', '-c', required=True, help='Comma-separated channel IDs')
 @click.option('--yes', '-y', is_flag=True, help='Skip confirmation')
@@ -307,7 +307,7 @@ def delete_channels(ctx, project_id, channel_ids, yes):
     """Delete channels from BM Database project
     
     Examples:
-        acrcloud bm-db-projects delete-channels 12345 --channel-ids "238766"
+        acrcloud bm-bd-projects delete-channels 12345 --channel-ids "238766"
     """
     api = ctx.obj['api']
     
@@ -317,7 +317,7 @@ def delete_channels(ctx, project_id, channel_ids, yes):
             return
     
     try:
-        api.delete_bm_db_channels(project_id=project_id, channel_ids=channel_ids)
+        api.delete_bm_bd_channels(project_id=project_id, channel_ids=channel_ids)
         click.echo(f"✓ Channels deleted successfully!")
         
     except Exception as e:
@@ -325,7 +325,7 @@ def delete_channels(ctx, project_id, channel_ids, yes):
         raise click.Abort()
 
 
-@bm_db_projects.command(name='set-custom-id')
+@bm_bd_projects.command(name='set-custom-id')
 @click.argument('project_id', type=int)
 @click.argument('channel_id', type=int)
 @click.option('--custom-id', '-c', required=True, help='Custom ID to set')
@@ -334,12 +334,12 @@ def set_custom_id(ctx, project_id, channel_id, custom_id):
     """Set custom_id for a channel
     
     Examples:
-        acrcloud bm-db-projects set-custom-id 12345 238766 --custom-id "MyID_1"
+        acrcloud bm-bd-projects set-custom-id 12345 238766 --custom-id "MyID_1"
     """
     api = ctx.obj['api']
     
     try:
-        result = api.set_bm_db_channel_custom_id(project_id=project_id, channel_id=channel_id, custom_id=custom_id)
+        result = api.set_bm_bd_channel_custom_id(project_id=project_id, channel_id=channel_id, custom_id=custom_id)
         click.echo(f"✓ Custom ID set successfully!")
         output_json(result)
         
@@ -350,7 +350,7 @@ def set_custom_id(ctx, project_id, channel_id, custom_id):
 
 # ==================== BM Database Channels Data ====================
 
-@bm_db_projects.command(name='channel-state')
+@bm_bd_projects.command(name='channel-state')
 @click.argument('project_id', type=int)
 @click.argument('channel_id', type=int)
 @click.option('--timeoffset', '-t', type=int, help='UTC time offset (e.g., 0)')
@@ -362,12 +362,12 @@ def channel_state(ctx, project_id, channel_id, timeoffset, start_date, end_date,
     """Get the state of the channel
     
     Examples:
-        acrcloud bm-db-projects channel-state 1234 295704 --timeoffset 0 --start-date 20210301 --end-date 20210302
+        acrcloud bm-bd-projects channel-state 1234 295704 --timeoffset 0 --start-date 20210301 --end-date 20210302
     """
     api = ctx.obj['api']
     
     try:
-        result = api.get_bm_db_channel_state(
+        result = api.get_bm_bd_channel_state(
             project_id=project_id,
             channel_id=channel_id,
             timeoffset=timeoffset,
@@ -381,7 +381,7 @@ def channel_state(ctx, project_id, channel_id, timeoffset, start_date, end_date,
         raise click.Abort()
 
 
-@bm_db_projects.command(name='channel-results')
+@bm_bd_projects.command(name='channel-results')
 @click.argument('project_id', type=int)
 @click.argument('channel_id', type=int)
 @click.option('--type', '-t', 'result_type', default='day', type=click.Choice(['last', 'day']), help='Get last or day results')
@@ -395,12 +395,12 @@ def channel_results(ctx, project_id, channel_id, result_type, date, min_duration
     """Get non-real-time results of channel monitoring
     
     Examples:
-        acrcloud bm-db-projects channel-results 12345 100251 --date 20210107
+        acrcloud bm-bd-projects channel-results 12345 100251 --date 20210107
     """
     api = ctx.obj['api']
     
     try:
-        result = api.get_bm_db_channel_results(
+        result = api.get_bm_bd_channel_results(
             project_id=project_id,
             channel_id=channel_id,
             result_type=result_type,
@@ -417,7 +417,37 @@ def channel_results(ctx, project_id, channel_id, result_type, date, min_duration
         raise click.Abort()
 
 
-@bm_db_projects.command(name='realtime-results')
+@bm_bd_projects.command(name='unknown-results')
+@click.argument('project_id', type=int)
+@click.argument('channel_id', type=int)
+@click.option('--date', '-d', required=True, help='Date (YYYYMMDD)')
+@click.option('--min-duration', type=int, help='Min duration seconds')
+@click.option('--max-duration', type=int, help='Max duration seconds')
+@click.pass_context
+def unknown_results(ctx, project_id, channel_id, date, min_duration, max_duration):
+    """Get unknown music results of channel monitoring
+    
+    Examples:
+        acrcloud bm-bd-projects unknown-results 12345 100251 --date 20210107
+    """
+    api = ctx.obj['api']
+    
+    try:
+        result = api.get_bm_bd_channel_unknown_results(
+            project_id=project_id,
+            channel_id=channel_id,
+            date=date,
+            min_duration=min_duration,
+            max_duration=max_duration
+        )
+        output_json(result)
+        
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        raise click.Abort()
+
+
+@bm_bd_projects.command(name='realtime-results')
 @click.argument('project_id', type=int)
 @click.argument('channel_id', type=int)
 @click.pass_context
@@ -425,12 +455,12 @@ def realtime_results(ctx, project_id, channel_id):
     """Get real-time results of channel monitoring
     
     Examples:
-        acrcloud bm-db-projects realtime-results 12345 100251
+        acrcloud bm-bd-projects realtime-results 12345 100251
     """
     api = ctx.obj['api']
     
     try:
-        result = api.get_bm_db_channel_realtime_results(
+        result = api.get_bm_bd_channel_realtime_results(
             project_id=project_id,
             channel_id=channel_id
         )
@@ -441,7 +471,7 @@ def realtime_results(ctx, project_id, channel_id):
         raise click.Abort()
 
 
-@bm_db_projects.command(name='analytics')
+@bm_bd_projects.command(name='analytics')
 @click.argument('project_id', type=int)
 @click.option('--stats-type', '-s', required=True, type=click.Choice(['date', 'track', 'artists', 'label', 'channel']), help='Type of data')
 @click.option('--result-type', '-r', required=True, type=click.Choice(['music', 'custom']), help='Type of result')
@@ -450,12 +480,12 @@ def analytics(ctx, project_id, stats_type, result_type):
     """Get analytics data for the last 7 days
     
     Examples:
-        acrcloud bm-db-projects analytics 1234 --stats-type date --result-type music
+        acrcloud bm-bd-projects analytics 1234 --stats-type date --result-type music
     """
     api = ctx.obj['api']
     
     try:
-        result = api.get_bm_db_analytics(
+        result = api.get_bm_bd_analytics(
             project_id=project_id,
             stats_type=stats_type,
             result_type=result_type
@@ -467,7 +497,7 @@ def analytics(ctx, project_id, stats_type, result_type):
         raise click.Abort()
 
 
-@bm_db_projects.command(name='user-report')
+@bm_bd_projects.command(name='user-report')
 @click.argument('project_id', type=int)
 @click.argument('channel_id', type=int)
 @click.option('--data', '-d', required=True, help='JSON string of user result array')
@@ -476,7 +506,7 @@ def user_report(ctx, project_id, channel_id, data):
     """Insert user results
     
     Examples:
-        acrcloud bm-db-projects user-report 179 100251 --data '[{"from":"api","title":"test","timeoffset":0}]'
+        acrcloud bm-bd-projects user-report 179 100251 --data '[{"from":"api","title":"test","timeoffset":0}]'
     """
     api = ctx.obj['api']
     
@@ -487,7 +517,7 @@ def user_report(ctx, project_id, channel_id, data):
         return
     
     try:
-        result = api.add_bm_db_channel_user_report(
+        result = api.add_bm_bd_channel_user_report(
             project_id=project_id,
             channel_id=channel_id,
             data=data_list
@@ -499,7 +529,7 @@ def user_report(ctx, project_id, channel_id, data):
         raise click.Abort()
 
 
-@bm_db_projects.command(name='channel-recording')
+@bm_bd_projects.command(name='channel-recording')
 @click.argument('project_id', type=int)
 @click.argument('channel_id', type=int)
 @click.option('--timestamp-utc', '-t', required=True, help='Start time (YYYYmmddHHMMSS)')
@@ -511,12 +541,12 @@ def channel_recording(ctx, project_id, channel_id, timestamp_utc, played_duratio
     """Get the recording of the results
     
     Examples:
-        acrcloud bm-db-projects channel-recording 100079 100123 -t 20210601121314 -d 30
+        acrcloud bm-bd-projects channel-recording 100079 100123 -t 20210601121314 -d 30
     """
     api = ctx.obj['api']
     
     try:
-        result = api.get_bm_db_channel_recording(
+        result = api.get_bm_bd_channel_recording(
             project_id=project_id,
             channel_id=channel_id,
             timestamp_utc=timestamp_utc,

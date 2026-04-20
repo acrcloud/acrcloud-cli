@@ -10,7 +10,7 @@ def ucf_projects(ctx):
     """Manage ACRCloud User Custom Content (UCF) Projects"""
     ctx.obj['api'] = ACRCloudAPI(
         ctx.obj['access_token'],
-        host=ctx.obj.get('host', 'https://api-v2.acrcloud.com')
+        ctx.obj['base_url']
     )
 
 # ==================== UCF Projects ====================

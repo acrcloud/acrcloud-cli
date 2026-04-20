@@ -777,14 +777,14 @@ class ACRCloudAPI:
 
     # ==================== BM Database Projects ====================
     
-    def list_bm_db_projects(self, region: Optional[str] = None) -> Dict:
+    def list_bm_bd_projects(self, region: Optional[str] = None) -> Dict:
         """List all BM Database projects"""
         params = {}
         if region:
             params['region'] = region
         return self._request('GET', '/bm-bd-projects', params=params)
 
-    def create_bm_db_project(self, name: str, region: str, buckets: List[int]) -> Dict:
+    def create_bm_bd_project(self, name: str, region: str, buckets: List[int]) -> Dict:
         """Create a new BM Database project"""
         payload = {
             'name': name,
@@ -793,7 +793,7 @@ class ACRCloudAPI:
         }
         return self._request('POST', '/bm-bd-projects', json=payload)
 
-    def update_bm_db_project(self, project_id: int, name: Optional[str] = None, buckets: Optional[List[int]] = None) -> Dict:
+    def update_bm_bd_project(self, project_id: int, name: Optional[str] = None, buckets: Optional[List[int]] = None) -> Dict:
         """Update a BM Database project"""
         payload = {}
         if name:
@@ -802,11 +802,11 @@ class ACRCloudAPI:
             payload['buckets'] = buckets
         return self._request('PUT', f'/bm-bd-projects/{project_id}', json=payload)
 
-    def delete_bm_db_project(self, project_id: int) -> Dict:
+    def delete_bm_bd_project(self, project_id: int) -> Dict:
         """Delete a BM Database project"""
         return self._request('DELETE', f'/bm-bd-projects/{project_id}')
 
-    def set_bm_db_result_callback(self, project_id: int, result_callback_url: str,
+    def set_bm_bd_result_callback(self, project_id: int, result_callback_url: str,
                                   result_callback_send_noresult: int = 0,
                                   result_callback_result_type: int = 0) -> Dict:
         """Set result callback URL for BM Database project"""
@@ -817,7 +817,7 @@ class ACRCloudAPI:
         }
         return self._request('POST', f'/bm-bd-projects/{project_id}/result-callback', json=payload)
 
-    def set_bm_db_state_notification_callback(self, project_id: int, state_callback_url: str) -> Dict:
+    def set_bm_bd_state_notification_callback(self, project_id: int, state_callback_url: str) -> Dict:
         """Set state notification callback for BM Database project"""
         payload = {
             'state_callback_url': state_callback_url
@@ -826,7 +826,7 @@ class ACRCloudAPI:
 
     # ==================== BM Database Channels ====================
     
-    def list_bm_db_channels(self, project_id: int, state: str = 'All', timemap: Optional[str] = None,
+    def list_bm_bd_channels(self, project_id: int, state: str = 'All', timemap: Optional[str] = None,
                             search_type: Optional[str] = None, search_value: Optional[str] = None,
                             page: int = 1) -> Dict:
         """List channels in BM Database project"""
@@ -838,23 +838,23 @@ class ACRCloudAPI:
             params['search_value'] = search_value
         return self._request('GET', f'/bm-bd-projects/{project_id}/channels', params=params)
 
-    def add_bm_db_channels(self, project_id: int, channels: List[int]) -> Dict:
+    def add_bm_bd_channels(self, project_id: int, channels: List[int]) -> Dict:
         """Add channels to BM Database project"""
         payload = {'channels': channels}
         return self._request('POST', f'/bm-bd-projects/{project_id}/channels', json=payload)
 
-    def delete_bm_db_channels(self, project_id: int, channel_ids: str) -> Dict:
+    def delete_bm_bd_channels(self, project_id: int, channel_ids: str) -> Dict:
         """Delete channels from BM Database project"""
         return self._request('DELETE', f'/bm-bd-projects/{project_id}/channels/{channel_ids}')
 
-    def set_bm_db_channel_custom_id(self, project_id: int, channel_id: int, custom_id: str) -> Dict:
+    def set_bm_bd_channel_custom_id(self, project_id: int, channel_id: int, custom_id: str) -> Dict:
         """Set custom_id for a channel"""
         params = {'custom_id': custom_id}
         return self._request('POST', f'/bm-bd-projects/{project_id}/channels/{channel_id}/user-defined', params=params)
 
     # ==================== BM Database Channels Data ====================
     
-    def get_bm_db_channel_results(self, project_id: int, channel_id: int, result_type: str = 'day',
+    def get_bm_bd_channel_results(self, project_id: int, channel_id: int, result_type: str = 'day',
                                   date: Optional[str] = None, min_duration: Optional[int] = None,
                                   max_duration: Optional[int] = None, isrc_country: Optional[str] = None,
                                   with_false_positive: Optional[int] = None) -> Dict:
@@ -872,11 +872,22 @@ class ACRCloudAPI:
             params['with_false_positive'] = with_false_positive
         return self._request('GET', f'/bm-bd-projects/{project_id}/channels/{channel_id}/results', params=params)
 
-    def get_bm_db_channel_realtime_results(self, project_id: int, channel_id: int) -> Dict:
+    def get_bm_bd_channel_unknown_results(self, project_id: int, channel_id: int,
+                                          date: str, min_duration: Optional[int] = None,
+                                          max_duration: Optional[int] = None) -> Dict:
+        """Get unknown music results of channel monitoring"""
+        params = {'date': date}
+        if min_duration is not None:
+            params['min_duration'] = min_duration
+        if max_duration is not None:
+            params['max_duration'] = max_duration
+        return self._request('GET', f'/bm-bd-projects/{project_id}/channels/{channel_id}/unknown_results', params=params)
+
+    def get_bm_bd_channel_realtime_results(self, project_id: int, channel_id: int) -> Dict:
         """Get real-time results of channel monitoring"""
         return self._request('GET', f'/bm-bd-projects/{project_id}/channels/{channel_id}/realtime_results')
 
-    def get_bm_db_channel_state(self, project_id: int, channel_id: int,
+    def get_bm_bd_channel_state(self, project_id: int, channel_id: int,
                                 timeoffset: Optional[int] = None,
                                 start_date: Optional[str] = None,
                                 end_date: Optional[str] = None) -> Dict:
@@ -890,7 +901,7 @@ class ACRCloudAPI:
             params['end_date'] = end_date
         return self._request('GET', f'/bm-bd-projects/{project_id}/channels/{channel_id}/state', params=params)
 
-    def get_bm_db_analytics(self, project_id: int, stats_type: str, result_type: str) -> Dict:
+    def get_bm_bd_analytics(self, project_id: int, stats_type: str, result_type: str) -> Dict:
         """Get analytics data for the last 7 days"""
         params = {
             'stats_type': stats_type,
@@ -898,12 +909,12 @@ class ACRCloudAPI:
         }
         return self._request('GET', f'/bm-bd-projects/{project_id}/analytics/results', params=params)
 
-    def add_bm_db_channel_user_report(self, project_id: int, channel_id: int, data: List[Dict]) -> Dict:
+    def add_bm_bd_channel_user_report(self, project_id: int, channel_id: int, data: List[Dict]) -> Dict:
         """Insert user results"""
         payload = {'data': data}
         return self._request('POST', f'/bm-bd-projects/{project_id}/channels/{channel_id}/user-reports', json=payload)
 
-    def get_bm_db_channel_recording(self, project_id: int, channel_id: int,
+    def get_bm_bd_channel_recording(self, project_id: int, channel_id: int,
                                     timestamp_utc: str, played_duration: int,
                                     record_before: int = 0, record_after: int = 0) -> Dict:
         """Get the recording of the results"""

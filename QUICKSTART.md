@@ -147,13 +147,13 @@ Manage local broadcast database monitoring configurations and query channel meta
 
 ```bash
 # List DB projects
-acrcloud bm-db-projects list
+acrcloud bm-bd-projects list
 
 # List channels in project
-acrcloud bm-db-projects list-channels 12345
+acrcloud bm-bd-projects list-channels 12345
 
 # Get non-realtime results for a channel
-acrcloud bm-db-projects channel-results 12345 100251
+acrcloud bm-bd-projects channel-results 12345 100251
 ```
 
 ### UCF Projects

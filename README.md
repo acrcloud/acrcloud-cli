@@ -339,23 +339,44 @@ Manage Broadcast Monitoring Database projects, channels, results, user reports, 
 
 ```bash
 # List BM database projects
-acrcloud bm-db-projects list
-acrcloud bm-db-projects list -r eu-west-1
+acrcloud bm-bd-projects list
+acrcloud bm-bd-projects list -r eu-west-1
 
 # Create a project
-acrcloud bm-db-projects create --name my-db-project --region eu-west-1 --buckets "14661"
+acrcloud bm-bd-projects create --name my-db-project --region eu-west-1 --buckets "14661"
 
 # Add channels
-acrcloud bm-db-projects add-channels 12345 --channels "238766"
+acrcloud bm-bd-projects add-channels 12345 --channels "238766"
 
 # List channels
-acrcloud bm-db-projects list-channels 12345
+acrcloud bm-bd-projects list-channels 12345
+
+# Delete channels
+acrcloud bm-bd-projects delete-channels 12345 --channel-ids "238766"
+
+# Set channel custom ID
+acrcloud bm-bd-projects set-custom-id 12345 238766 --custom-id "MyID_1"
 
 # Channel results
-acrcloud bm-db-projects channel-results 12345 238766 -d 20210201
+acrcloud bm-bd-projects channel-results 12345 238766 -d 20210201
+
+# Unknown music results
+acrcloud bm-bd-projects unknown-results 12345 238766 -d 20210201
 
 # Real-time results
-acrcloud bm-db-projects realtime-results 12345 238766
+acrcloud bm-bd-projects realtime-results 12345 238766
+
+# Channel state
+acrcloud bm-bd-projects channel-state 12345 238766 --timeoffset 0 --start-date 20210301 --end-date 20210302
+
+# Analytics
+acrcloud bm-bd-projects analytics 12345 --stats-type date --result-type music
+
+# User report
+acrcloud bm-bd-projects user-report 12345 238766 --data '[{"from":"api","title":"test","timeoffset":0}]'
+
+# Channel recording
+acrcloud bm-bd-projects channel-recording 12345 238766 --timestamp-utc 20210601121314 --played-duration 30
 ```
 
 ### UCF Projects
