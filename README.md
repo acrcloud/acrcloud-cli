@@ -10,6 +10,7 @@ A command-line interface for managing ACRCloud resources via the Console API.
 - **Project Management**: Create and manage recognition projects
 - **File Scanning**: Scan audio files for music, cover songs, speech recognition
 - **BM Projects**: Broadcast Monitoring custom streams projects and streams
+- **Billing & Pricing**: Query bills, invoices, and service pricing
 - **Flexible Output**: JSON or table output formats
 - **Configuration Management**: Store settings in config files
 
@@ -402,6 +403,40 @@ acrcloud ucf-projects list-results 12345
 # Get UCF record URL
 acrcloud ucf-projects record-url 12345 340335
 ```
+
+### Billing & Pricing
+
+Query your billing information, invoices, and service pricing.
+
+```bash
+# Get current bill
+acrcloud billing current-bill
+acrcloud billing current-bill --output json
+
+# Get next bill date
+acrcloud billing next-bill-date
+
+# List invoices
+acrcloud billing invoices
+acrcloud billing invoices --per-page 50
+
+# Download invoice PDF
+acrcloud billing download-invoice 12345-67890
+acrcloud billing download-invoice 12345-67890 --output-file ~/my_invoice.pdf
+
+# Get pricing information
+acrcloud billing prices
+acrcloud billing prices --type Standard
+acrcloud billing prices --service-types AVR,LCD,BM
+
+```
+
+**Price Types:**
+- `Latest` (default): Latest prices grouped by service type
+- `Standard`: Default prices (uid=0)
+- `All`: All prices for uid 0 and the specified uid
+
+**Service Types:** `AVR`, `LCD`, `BM`, `HR`, etc.
 
 ## Global Options
 
